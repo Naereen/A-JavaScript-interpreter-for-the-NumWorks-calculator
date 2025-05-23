@@ -1,7 +1,7 @@
 #include "crt_stubs.h"
 // #include <sys/time.h> // gettimeofday
 #include <eadk.h>
-#include "eadk_lib.h"
+// #include "eadk_lib.h"
 #include "storage.h"
 #include "espruino_embedded.h"
 
@@ -33,6 +33,16 @@ void ejs_print(const char *str) {
 // int main(int argc, char ** argv) {
 int main() {
 
+  printf("Embedded Espruino v0.0.1\n");
+  eadk_timing_msleep(1000);
+
+  ejs_create(1000);
+  struct ejs* ejs[1];
+  ejs[0] = ejs_create_instance();
+
+  printf("Reading from 'javascript.py' file...\n");
+  eadk_timing_msleep(1000);
+
   // We read "javascript.py"
   size_t file_len = 0;
   const char * code_from_file = extapp_fileRead("javascript.py", &file_len);
@@ -40,15 +50,10 @@ int main() {
   // DONE: I wasn't able to compile while depending on external data, but it works if reading from a local 'javascript.py' file.
   // const char * code = eadk_external_data;
 
-  const char * code = (code_from_file == NULL && file_len <= 0) ? "console.log(\"Hi from Lua interpreter! sleep(3s)\")\n// eadk.timing_msleep(3000)" : (code_from_file + 1);
+  const char * code = (code_from_file == NULL && file_len <= 0) ? "console.log(\"\\nHi from JavaScript interpreter! sleep(3s)\")\n// eadk.timing_msleep(3000)\ntypeof(NaN)" : (code_from_file + 1);
 
-  ejs_create(1000);
-  struct ejs* ejs[1];
-  ejs[0] = ejs_create_instance();
-  // ejs[1] = ejs_create_instance();
-  // printf("Embedded Espruino test.\n===========================\nTwo instances.\nType JS and hit enter, or type 'quit' to exit:\n0>");
-  // int instanceNumber = 0;
-  printf("Embedded Espruino v0.0.1\nReading from 'javascript.py' file");
+  printf("Executing code...\n");
+  eadk_timing_msleep(1000);
 
   JsVar *v = ejs_exec(ejs[0], code, false);
   jsiConsolePrintf("=%v\n", v);

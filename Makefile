@@ -16,8 +16,8 @@ objs = $(addprefix output/javascript/,\
   espruino_embedded.o \
 )
 
+#   eadk_lib.o
 objs += $(addprefix output/,\
-  eadk_lib.o \
   storage.o \
   crt_stubs.o \
   icon.o \

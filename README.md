@@ -2,6 +2,8 @@
 
 [![Build](https://github.com/Naereen/A-JavaScript-interpreter-for-the-NumWorks-calculator/actions/workflows/build.yml/badge.svg)](https://github.com/Naereen/A-JavaScript-interpreter-for-the-NumWorks-calculator/actions/workflows/build.yml)
 
+[![Screenshot documentation showing the icon in my list of applications](screenshot-documentations/screenshot-documentation-icon-of-application.png)](screenshot-documentations/screenshot-documentation-icon-of-application.png)
+
 This apps lets you run a [JavaScript](https://en.wikipedia.org/wiki/JavaScript) script on your [NumWorks calculator](https://www.numworks.com)!
 [![JavaScript logo](./src/icon.png)](https://en.wikipedia.org/wiki/JavaScript)
 

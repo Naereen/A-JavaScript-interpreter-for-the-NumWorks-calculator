@@ -30,6 +30,7 @@ CFLAGS += -Os -Wall -Wextra -Wvla
 # CFLAGS += -Werror
 CFLAGS += -ggdb
 CFLAGS += -Isrc/javascript
+
 LDFLAGS = -Wl,--relocatable
 LDFLAGS += $(shell $(NWLINK) eadk-ldflags-device)
 

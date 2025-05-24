@@ -11,9 +11,9 @@ This apps lets you run a [JavaScript](https://en.wikipedia.org/wiki/JavaScript) 
 
 Installing is rather easy:
 
-1. Download the latest `javascript.nwa` file from the [Releases](https://github.com/Naereen/A-JavaScript-interpreter-for-the-NumWorks-calculator/releases) page ;
-2. This Release page is not-yet ready on this project, use [this folder instead](https://perso.crans.org/besson/publis/Numworks-apps/), and [this link](https://perso.crans.org/besson/publis/Numworks-apps/javascript.nwa) ;
-3. Head to [my.numworks.com/apps](https://my.numworks.com/apps) to send the `nwa` file on your calculator (on Google Chrome browser). On [this page](https://my.numworks.com/python/lilian-besson-1/javascript) you will be able to also send a default example of a JavaScript file (a tiny test script), and you can edit it yourself later on, on your calculator.
+1. (not yet, see 2) Download the latest `javascript.nwa` file from the [Releases](https://github.com/Naereen/A-JavaScript-interpreter-for-the-NumWorks-calculator/releases) page ;
+2. This Release page is not-yet ready, on this project, use [this folder instead](https://perso.crans.org/besson/publis/Numworks-apps/), and [this direct link](https://perso.crans.org/besson/publis/Numworks-apps/javascript.nwa) ;
+3. Head to [my.numworks.com/apps](https://my.numworks.com/apps) to send the `nwa` file on your calculator (on Google Chrome browser). On [this page](https://my.numworks.com/python/lilian-besson-1/javascript) you will be able to also send a default example of a JavaScript file (a tiny test script), and you can edit it yourself later on, on your calculator!
 
 ## How to use the app
 

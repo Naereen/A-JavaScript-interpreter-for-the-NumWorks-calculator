@@ -21,7 +21,7 @@ void jshKickSoftWatchDog() {
 
 // XXX: do we need this, for our app?
 uint64_t ejs_get_microseconds() {
-  return (uint64_t)0;
+  return (uint64_t) (eadk_timing_millis() * 1000);
 }
 
 // TODO: do we need this, for our app?

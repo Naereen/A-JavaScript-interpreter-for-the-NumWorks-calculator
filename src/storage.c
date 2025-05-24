@@ -231,7 +231,7 @@ uint32_t extapp_address() {
   return *(uint32_t *)((*extapp_userlandAddress()) + 0xC);
 }
 
-const uint32_t extapp_size() {
+uint32_t extapp_size() {
   return *(uint32_t *)((*extapp_userlandAddress()) + 0x10);
 }
 
@@ -262,7 +262,7 @@ const uint32_t * extapp_nextFree() {
   return (uint32_t *)endAddress;
 }
 
-const uint32_t extapp_used() {
+uint32_t extapp_used() {
   return (uint32_t)extapp_nextFree() - extapp_address();
 }
 
@@ -271,7 +271,7 @@ bool extapp_isValid(const uint32_t * address) {
   return *address == reverse32(0xBADD0BEE);
 }
 
-const uint8_t extapp_calculatorModel() {
+uint8_t extapp_calculatorModel() {
   // To guess the storage size without reading forbidden addresses, we try to
   // get the storage address from the userland header
 

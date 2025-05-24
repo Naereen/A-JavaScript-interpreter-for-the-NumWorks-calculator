@@ -28,7 +28,7 @@ CFLAGS = -std=c99
 CFLAGS += $(shell $(NWLINK) eadk-cflags-device)
 CFLAGS += -Os -Wall -Wextra -Wvla
 # CFLAGS += -Werror
-CFLAGS += -ggdb
+# CFLAGS += -ggdb
 CFLAGS += -Isrc/javascript
 
 LDFLAGS = -Wl,--relocatable

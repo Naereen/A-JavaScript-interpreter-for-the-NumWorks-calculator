@@ -25,11 +25,11 @@ for (let j = 1; j <= 1; j++) {
   }
 
   let i = 7;
-  eadk.display_draw_string("Hello", 10 * i,     10 * i + 20 * j, 0, eadk_color_red);
+  eadk.display_draw_string("Hello", 10 * i, 10 * i + 20 * j, 0, eadk_color_red);
   i++;
-  eadk.display_draw_string("Hello", 10 * i,     10 * i + 20 * j, 0, eadk_color_green);
+  eadk.display_draw_string("Hello", 10 * i, 10 * i + 20 * j, 0, eadk_color_green);
   i++;
-  eadk.display_draw_string("Hello", 10 * i,     10 * i + 20 * j, 0, eadk_color_blue);
+  eadk.display_draw_string("Hello", 10 * i, 10 * i + 20 * j, 0, eadk_color_blue);
   i++;
 
   eadk.timing_msleep(1000);

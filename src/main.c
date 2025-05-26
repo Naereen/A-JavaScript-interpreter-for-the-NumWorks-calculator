@@ -1,3 +1,8 @@
+//
+// C main.c file (main application file)
+// for the Espruino JavaScript interpreter (NWA) app for the Numwoks calculators
+//
+
 #include "crt_stubs.h"
 // #include <sys/time.h> // gettimeofday
 #include <eadk.h>

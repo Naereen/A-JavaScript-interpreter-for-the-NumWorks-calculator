@@ -333,7 +333,7 @@ JsVar *jsvGetFlatStringFromPointer(char *v);
 char *jsvGetDataPointer(JsVar *v, size_t *len);
 size_t jsvGetLinesInString(JsVar *v);
 size_t jsvGetCharsOnLine(JsVar *v, size_t line);
-void jsvGetLineAndCol(JsVar *v, size_t charIdx, size_t *line, size_t *col);
+void jsvGetLineAndCol(JsVar *v, size_t charIdx, size_t *line, size_t *col, size_t *ignoredLines);
 size_t jsvGetIndexFromLineAndCol(JsVar *v, size_t line, size_t col);
 bool jsvIsStringEqualOrStartsWithOffset(JsVar *var, const char *str, bool isStartsWith, size_t startIdx, bool ignoreCase);
 bool jsvIsStringEqualOrStartsWith(JsVar *var, const char *str, bool isStartsWith);
@@ -738,9 +738,10 @@ typedef struct JsLex
   JsVar *tokenValue;
   unsigned char tokenl;
   bool hadThisKeyword;
-  uint16_t lineNumberOffset;
   JsVar *sourceVar;
   JsvStringIterator it;
+  JsVar *functionName;
+  struct JsLex *lastLex;
 } JsLex;
 extern JsLex *lex;
 JsLex *jslSetLex(JsLex *l);
@@ -761,11 +762,11 @@ void jslSkipWhiteSpace();
 void jslGetNextToken();
 JsVar *jslNewStringFromLexer(JslCharPos *charFrom, size_t charTo);
 JsVar *jslNewTokenisedStringFromLexer(JslCharPos *charFrom, size_t charTo);
-unsigned int jslGetLineNumber();
 bool jslNeedSpaceBetween(unsigned char lastch, unsigned char ch);
 void jslPrintTokenisedString(JsVar *code, vcbprintf_callback user_callback, void *user_data);
-void jslPrintPosition(vcbprintf_callback user_callback, void *user_data, size_t tokenPos);
-void jslPrintTokenLineMarker(vcbprintf_callback user_callback, void *user_data, size_t tokenPos, char *prefix);
+void jslPrintPosition(vcbprintf_callback user_callback, void *user_data, JsLex *lex, size_t tokenPos);
+void jslPrintTokenLineMarker(vcbprintf_callback user_callback, void *user_data, JsLex *lex, size_t tokenPos, size_t prefixLength);
+void jslPrintStackTrace(vcbprintf_callback user_callback, void *user_data, JsLex *lex);
 void jspInit();
 void jspKill();
 void jspSoftInit();
@@ -780,12 +781,13 @@ JsVar *jspNewObject(const char *name, const char *instanceOf);
 bool jspIsInterrupted();
 void jspSetInterrupted(bool interrupt);
 bool jspHasError();
-void jspSetError(bool lineReported);
+void jspSetError();
 void jspSetException(JsVar *value);
 JsVar *jspGetException();
 JsVar *jspGetStackTrace();
+void jspAppendStackTrace(JsVar *stackTrace, JsLex *lex);
 JsVar *jspEvaluateExpressionVar(JsVar *str);
-JsVar *jspEvaluateVar(JsVar *str, JsVar *scope, uint16_t lineNumberOffset);
+JsVar *jspEvaluateVar(JsVar *str, JsVar *scope, const char *stackTraceName);
 JsVar *jspEvaluate(const char *str, bool stringIsStatic);
 JsVar *jspExecuteJSFunctionCode(const char *argNames, const char *jsCode, size_t jsCodeLen, JsVar *thisArg, int argCount, JsVar **argPtr);
 JsVar *jspExecuteFunction(JsVar *func, JsVar *thisArg, int argCount, JsVar **argPtr);
@@ -800,7 +802,6 @@ typedef enum {
   EXEC_INTERRUPTED = 16,
   EXEC_EXCEPTION = 32,
   EXEC_ERROR = 64,
-  EXEC_ERROR_LINE_REPORTED = 128,
   EXEC_FOR_INIT = 256,
   EXEC_IN_LOOP = 512,
   EXEC_IN_SWITCH = 1024,
@@ -858,6 +859,7 @@ JsVar *jswrap_encodeURIComponent(JsVar *arg);
 JsVar *jswrap_decodeURIComponent(JsVar *arg);
 void jswrap_trace(JsVar *root);
 void jswrap_print(JsVar *v);
+void jswrap_console_trace(JsVar *v);
 typedef union {
   uint32_t firstChars;
   char c[28];
@@ -1221,7 +1223,7 @@ static void jslLexString() {
     lex->tk = LEX_TEMPLATE_LITERAL;
   else lex->tk = LEX_STR;
   if (lex->currCh!=delim)
-    lex->tk++;
+    lex->tk = (delim=='`') ? LEX_UNFINISHED_TEMPLATE_LITERAL : LEX_UNFINISHED_STR;
   jslGetNextCh();
 }
 static void jslLexRegex() {
@@ -1623,7 +1625,8 @@ void jslInit(JsVar *var) {
   lex->tokenLastStart = 0;
   lex->tokenl = 0;
   lex->tokenValue = 0;
-  lex->lineNumberOffset = 0;
+  lex->functionName = NULL;
+  lex->lastLex = NULL;
   jsvStringIteratorNew(&lex->it, lex->sourceVar, 0);
   jsvUnLock(lex->it.var);
   jslPreload();
@@ -2015,12 +2018,6 @@ JsVar *jslNewStringFromLexer(JslCharPos *charFrom, size_t charTo) {
   jsvStringIteratorFree(&it);
   return var;
 }
-unsigned int jslGetLineNumber() {
-  size_t line;
-  size_t col;
-  jsvGetLineAndCol(lex->sourceVar, lex->tokenStart, &line, &col);
-  return (unsigned int)line;
-}
 bool jslNeedSpaceBetween(unsigned char lastch, unsigned char ch) {
   return ((lastch>=_LEX_R_LIST_START && lastch<=_LEX_R_LIST_END) || (ch>=_LEX_R_LIST_START && ch<=_LEX_R_LIST_END)) &&
          (lastch>=_LEX_R_LIST_START || isAlpha((char)lastch) || isNumeric((char)lastch)) &&
@@ -2080,23 +2077,16 @@ void jslPrintTokenisedString(JsVar *code, vcbprintf_callback user_callback, void
   }
   jsvStringIteratorFree(&it);
 }
-void jslPrintPosition(vcbprintf_callback user_callback, void *user_data, size_t tokenPos) {
-  size_t line,col;
-  jsvGetLineAndCol(lex->sourceVar, tokenPos, &line, &col);
-  if (lex->lineNumberOffset)
-    line += (size_t)lex->lineNumberOffset - 1;
-  cbprintf(user_callback, user_data, "line %d col %d\n", line, col);
+void jslPrintPosition(vcbprintf_callback user_callback, void *user_data, JsLex *lex, size_t tokenPos) {
+  size_t line,col,ignoredLines;
+  jsvGetLineAndCol(lex->sourceVar, tokenPos, &line, &col, &ignoredLines);
+  cbprintf(user_callback, user_data, ":%d:%d", line-ignoredLines, col);
 }
-void jslPrintTokenLineMarker(vcbprintf_callback user_callback, void *user_data, size_t tokenPos, char *prefix) {
+void jslPrintTokenLineMarker(vcbprintf_callback user_callback, void *user_data, JsLex *lex, size_t tokenPos, size_t prefixLength) {
   size_t line = 1,col = 1;
-  jsvGetLineAndCol(lex->sourceVar, tokenPos, &line, &col);
+  jsvGetLineAndCol(lex->sourceVar, tokenPos, &line, &col, NULL);
   size_t startOfLine = jsvGetIndexFromLineAndCol(lex->sourceVar, line, 1);
   size_t lineLength = jsvGetCharsOnLine(lex->sourceVar, line);
-  size_t prefixLength = 0;
-  if (prefix) {
-    user_callback(prefix, user_data);
-    prefixLength = strlen(prefix);
-  }
   if (lineLength>60 && tokenPos-startOfLine>30) {
     cbprintf(user_callback, user_data, "...");
     size_t skipChars = tokenPos-30 - startOfLine;
@@ -2123,12 +2113,28 @@ void jslPrintTokenLineMarker(vcbprintf_callback user_callback, void *user_data, 
   while (col-- > 1) user_callback(" ", user_data);
   user_callback("^\n", user_data);
 }
+void jslPrintStackTrace(vcbprintf_callback user_callback, void *user_data, JsLex *lex) {
+  while (lex) {
+    user_callback("    at ", user_data);
+    if (lex->functionName) {
+      char functionName[64];
+      jsvGetString(lex->functionName, functionName, sizeof(functionName));
+      user_callback(functionName, user_data);
+      user_callback(" (", user_data);
+    }
+    jslPrintPosition(user_callback, user_data, lex, lex->tokenLastStart);
+    user_callback(lex->functionName ? ")\n":"\n", user_data);
+    jslPrintTokenLineMarker(user_callback, user_data, lex, lex->tokenLastStart, 0);
+    lex = lex->lastLex;
+  }
+}
 typedef enum {
   JSF_NONE,
   JSF_DEEP_SLEEP = 1<<0,
   JSF_UNSAFE_FLASH = 1<<1,
   JSF_UNSYNC_FILES = 1<<2,
   JSF_PRETOKENISE = 1<<3,
+  JSF_NO_ERRORS_SAVE = 1<<5,
 } __attribute__ ((__packed__)) JsFlags;
 extern volatile JsFlags jsFlags;
 bool jsfGetFlag(JsFlags flag);
@@ -2136,7 +2142,7 @@ void jsfSetFlag(JsFlags flag, bool isOn);
 JsVar *jsfGetFlags();
 void jsfSetFlags(JsVar *flags);
 volatile JsFlags jsFlags;
-const char *jsFlagNames = "deepSleep\0unsafeFlash\0unsyncFiles\0pretokenise\0jitDebug\0";
+const char *jsFlagNames = "deepSleep\0unsafeFlash\0unsyncFiles\0pretokenise\0jitDebug\0noErrorSave\0";
 bool jsfGetFlag(JsFlags flag) {
   return (jsFlags & flag)!=0;
 }
@@ -2577,6 +2583,7 @@ extern void jshHadEvent();
 extern volatile bool jshHadEventDuringSleep;
 JsVarFloat jshReadTemperature();
 JsVarFloat jshReadVRef();
+JsVarFloat jshReadVDDH();
 unsigned int jshGetRandomNumber();
 unsigned int jshSetSystemClock(JsVar *options);
 JsVar *jshGetSystemClock();
@@ -2597,6 +2604,7 @@ bool jsiExecuteEventCallback(JsVar *thisVar, JsVar *callbackVar, unsigned int ar
 bool jsiExecuteEventCallbackArgsArray(JsVar *thisVar, JsVar *callbackVar, JsVar *argsArray);
 bool jsiExecuteEventCallbackName(JsVar *obj, const char *cbName, unsigned int argCount, JsVar **argPtr);
 bool jsiExecuteEventCallbackOn(const char *objectName, const char *cbName, unsigned int argCount, JsVar **argPtr);
+void jsiCheckErrors(bool wasREPL);
 JsVar *jsiSetTimeout(void (*functionPtr)(void), JsVarFloat milliseconds);
 void jsiClearTimeout(JsVar *timeout);
 IOEventFlags jsiGetDeviceFromClass(JsVar *deviceClass);
@@ -3076,6 +3084,11 @@ JsVar *jsvNewWithFlags(JsVarFlags flags) {
   }
   if (jsiFreeMoreMemory()) {
     return jsvNewWithFlags(flags);
+  }
+  if (!(jsErrorFlags & JSERR_MEMORY)) {
+    jsErrorFlags |= JSERR_MEMORY;
+    jsiConsolePrintString("OUT OF MEMORY");
+    jswrap_console_trace(NULL);
   }
   jsErrorFlags |= JSERR_MEMORY;
   jspSetInterrupted(true);
@@ -3904,15 +3917,25 @@ size_t jsvGetCharsOnLine(JsVar *v, size_t line) {
   jsvStringIteratorFree(&it);
   return chars;
 }
-void jsvGetLineAndCol(JsVar *v, size_t charIdx, size_t *line, size_t *col) {
+void jsvGetLineAndCol(JsVar *v, size_t charIdx, size_t *line, size_t *col, size_t *ignoredLines) {
   size_t x = 1;
   size_t y = 1;
   size_t n = 0;
   do { } while(0);
+  const char *ignoreLine = "Modules.addCached";
+  int ignoreLineIdx = 0;
+  if (ignoredLines) *ignoredLines=0;
   JsvStringIterator it;
   jsvStringIteratorNew(&it, v, 0);
   while (jsvStringIteratorHasChar(&it)) {
     char ch = jsvStringIteratorGetCharAndNext(&it);
+    if (ignoredLines && y==1+*ignoredLines && ignoreLineIdx>=0 && ch==ignoreLine[ignoreLineIdx]) {
+      ignoreLineIdx++;
+      if (ignoreLine[ignoreLineIdx]==0) {
+        ignoreLineIdx=-1;
+        (*ignoredLines)++;
+      }
+    }
     if (n==charIdx) {
       jsvStringIteratorFree(&it);
       *line = y;
@@ -3922,6 +3945,7 @@ void jsvGetLineAndCol(JsVar *v, size_t charIdx, size_t *line, size_t *col) {
     x++;
     if (ch=='\n') {
       x=1; y++;
+      ignoreLineIdx = 0;
     }
     n++;
   }
@@ -4201,7 +4225,7 @@ void jsvSetInteger(JsVar *v, JsVarInt value) {
 }
 bool jsvGetBool(const JsVar *v) {
   if (jsvIsString(v))
-    return jsvGetStringLength((JsVar*)v)!=0;
+    return !jsvIsEmptyString((JsVar*)v);
   if (jsvIsFunction(v) || jsvIsArray(v) || jsvIsObject(v) || jsvIsArrayBuffer(v))
     return true;
   if (jsvIsFloat(v)) {
@@ -6976,7 +7000,7 @@ __attribute__ ((noinline)) void jsExceptionHere(JsExceptionType type, const char
   jsiConsoleRemoveInputLine();
   JsVar *var = jsvNewFromEmptyString();
   if (!var) {
-    jspSetError(false);
+    jspSetError();
     return;
   }
   JsvStringIterator it;
@@ -7526,10 +7550,8 @@ void jspSetInterrupted(bool interrupt) {
   else
     execInfo.execute = execInfo.execute & (JsExecFlags)~EXEC_INTERRUPTED;
 }
-void jspSetError(bool lineReported) {
+void jspSetError() {
   execInfo.execute = (execInfo.execute & (JsExecFlags)~EXEC_YES) | EXEC_ERROR;
-  if (lineReported)
-    execInfo.execute |= EXEC_ERROR_LINE_REPORTED;
 }
 bool jspHasError() {
   return (((execInfo.execute)&EXEC_ERROR_MASK)!=0);
@@ -7652,12 +7674,11 @@ bool jspCheckStackPosition() {
 void jspSetNoExecute() {
   execInfo.execute = (execInfo.execute & (JsExecFlags)(int)~EXEC_RUN_MASK) | EXEC_NO;
 }
-void jspAppendStackTrace(JsVar *stackTrace) {
+void jspAppendStackTrace(JsVar *stackTrace, JsLex *lex) {
   JsvStringIterator it;
   jsvStringIteratorNew(&it, stackTrace, 0);
   jsvStringIteratorGotoEnd(&it);
-  jslPrintPosition((vcbprintf_callback)jsvStringIteratorPrintfCallback, &it, lex->tokenLastStart);
-  jslPrintTokenLineMarker((vcbprintf_callback)jsvStringIteratorPrintfCallback, &it, lex->tokenLastStart, 0);
+  jslPrintStackTrace(jsvStringIteratorPrintfCallback, &it, lex);
   jsvStringIteratorFree(&it);
 }
 void jspSetException(JsVar *value) {
@@ -7667,26 +7688,12 @@ void jspSetException(JsVar *value) {
     jsvUnLock(exception);
   }
   execInfo.execute = execInfo.execute | EXEC_EXCEPTION;
-  if (lex) {
-    JsVar *stackTrace = jsvObjectGetChild(execInfo.hiddenRoot, "sTrace", JSV_STRING_0);
-    if (stackTrace) {
-      jsvAppendPrintf(stackTrace, " at ");
-      jspAppendStackTrace(stackTrace);
-      jsvUnLock(stackTrace);
-      execInfo.execute = execInfo.execute | EXEC_ERROR_LINE_REPORTED;
-    }
-  }
 }
 JsVar *jspGetException() {
   JsVar *exceptionName = jsvFindChildFromString(execInfo.hiddenRoot, "except");
   if (exceptionName) {
     JsVar *exception = jsvSkipName(exceptionName);
     jsvRemoveChildAndUnLock(execInfo.hiddenRoot, exceptionName);
-    JsVar *stack = jspGetStackTrace();
-    if (stack && jsvHasChildren(exception)) {
-      jsvObjectSetChild(exception, "stack", stack);
-    }
-    jsvUnLock(stack);
     return exception;
   }
   return 0;
@@ -7709,7 +7716,7 @@ __attribute__ ((noinline)) bool jspeFunctionArguments(JsVar *funcVar) {
       strcpy(&buf[1], jslGetTokenValueAsString());
       JsVar *param = jsvAddNamedChild(funcVar, 0, buf);
       if (!param) {
-        jspSetError(false);
+        jspSetError();
         return false;
       }
       param = jsvMakeFunctionParameter(param);
@@ -7749,10 +7756,6 @@ __attribute__ ((noinline)) bool jspeFunctionDefinitionInternal(JsVar *funcVar, b
       { do { } while(0);jslGetNextToken(); };
     }
   }
-  JsVarInt lineNumber = 0;
-  if (funcVar && lex->lineNumberOffset && !(forcePretokenise||jsfGetFlag(JSF_PRETOKENISE))) {
-    lineNumber = (JsVarInt)jslGetLineNumber() + (JsVarInt)lex->lineNumberOffset - 1;
-  }
   jslSkipWhiteSpace();
   jslCharPosNew(&funcBegin, lex->sourceVar, lex->tokenStart);
   int lastTokenEnd = -1;
@@ -7791,12 +7794,6 @@ __attribute__ ((noinline)) bool jspeFunctionDefinitionInternal(JsVar *funcVar, b
     JsVar *funcScopeVar = jspeiGetScopesAsVar();
     if (funcScopeVar) {
       jsvAddNamedChildAndUnLock(funcVar, funcScopeVar, "\xFF""sco");
-    }
-    if (lineNumber) {
-      JsVar *funcLineNumber = jsvNewFromInteger(lineNumber);
-      if (funcLineNumber) {
-        jsvAddNamedChildAndUnLock(funcVar, funcLineNumber, "\xFF""lin");
-      }
     }
   }
   jslCharPosFree(&funcBegin);
@@ -7933,14 +7930,13 @@ __attribute__ ((noinline)) JsVar *jspeFunctionCall(JsVar *function, JsVar *funct
     } else {
       JsVar *functionRoot = jsvNewWithFlags(JSV_FUNCTION);
       if (!functionRoot) {
-        jspSetError(false);
+        jspSetError();
         jsvUnLock(thisVar);
         return 0;
       }
       JsVar *functionScope = 0;
       JsVar *functionCode = 0;
       JsVar *functionInternalName = 0;
-      uint16_t functionLineNumber = 0;
       JsvObjectIterator it;
       jsvObjectIteratorNew(&it, function);
       JsVar *param = jsvObjectIteratorGetKey(&it);
@@ -7993,7 +7989,6 @@ __attribute__ ((noinline)) JsVar *jspeFunctionCall(JsVar *function, JsVar *funct
             jsvUnLock(thisVar);
             thisVar = jsvSkipName(param);
           }
-          else if (jsvIsStringEqual(param, "\xFF""lin")) functionLineNumber = (uint16_t)jsvGetIntegerAndUnLock(jsvSkipName(param));
           else if (jsvIsFunctionParameter(param)) {
             JsVar *defaultVal = jsvSkipName(param);
             jsvAddFunctionParameter(functionRoot, jsvNewFromStringVar(param,1,(0x7FFFFFFF)), defaultVal);
@@ -8030,9 +8025,10 @@ __attribute__ ((noinline)) JsVar *jspeFunctionCall(JsVar *function, JsVar *funct
             JsLex newLex;
             JsLex *oldLex = jslSetLex(&newLex);
             jslInit(functionCode);
+            newLex.functionName = functionName;
+            newLex.lastLex = oldLex;
             jsvUnLock(functionCode);
             functionCode = 0;
-            newLex.lineNumberOffset = functionLineNumber;
             JsExecFlags oldExecute = execInfo.execute;
             execInfo.execute = EXEC_YES | (execInfo.execute&(EXEC_CTRL_C_MASK|EXEC_ERROR_MASK));
             if (jsvIsFunctionReturn(function)) {
@@ -8052,19 +8048,8 @@ __attribute__ ((noinline)) JsVar *jspeFunctionCall(JsVar *function, JsVar *funct
             execInfo.execute = (execInfo.execute&(JsExecFlags)(~EXEC_SAVE_RESTORE_MASK)) | (oldExecute&EXEC_SAVE_RESTORE_MASK);;
             jslKill();
             jslSetLex(oldLex);
-            if (hasError) {
+            if (hasError)
               execInfo.execute |= hasError;
-              JsVar *stackTrace = jsvObjectGetChild(execInfo.hiddenRoot, "sTrace", JSV_STRING_0);
-              if (stackTrace) {
-                jsvAppendPrintf(stackTrace, jsvIsString(functionName)?"in function %q called from ":
-                    "in function called from ", functionName);
-                if (lex) {
-                  jspAppendStackTrace(stackTrace);
-                } else
-                  jsvAppendPrintf(stackTrace, "system\n");
-                jsvUnLock(stackTrace);
-              }
-            }
           }
           if (execInfo.thisVar) jsvUnRef(execInfo.thisVar);
           execInfo.thisVar = oldThisVar;
@@ -8276,7 +8261,7 @@ __attribute__ ((noinline)) JsVar *jspeFactorFunctionCall() {
     isConstructor = true;
     if (lex->tk==LEX_R_NEW) {
       jsExceptionHere(JSET_ERROR, "Nesting 'new' operators is unsupported");
-      jspSetError(false);
+      jspSetError();
       return 0;
     }
   }
@@ -8367,7 +8352,7 @@ __attribute__ ((noinline)) JsVar *jspeFactorObject() {
   if ((((execInfo.execute)&EXEC_RUN_MASK)==EXEC_YES)) {
     JsVar *contents = jsvNewObject();
     if (!contents) {
-      jspSetError(false);
+      jspSetError();
       return 0;
     }
     { if (!jslMatch(('{'))) { ; return contents; } };
@@ -8445,7 +8430,7 @@ __attribute__ ((noinline)) JsVar *jspeFactorArray() {
   if ((((execInfo.execute)&EXEC_RUN_MASK)==EXEC_YES)) {
     contents = jsvNewEmptyArray();
     if (!contents) {
-      jspSetError(false);
+      jspSetError();
       return 0;
     }
   }
@@ -9152,17 +9137,6 @@ __attribute__ ((noinline)) void jspeBlockNoBrackets() {
       JsVar *a = jspeStatement();
       jsvCheckReferenceError(a);
       jsvUnLock(a);
-      if ((((execInfo.execute)&EXEC_ERROR_MASK)!=0)) {
-        if (lex && !(execInfo.execute&EXEC_ERROR_LINE_REPORTED)) {
-          execInfo.execute = (JsExecFlags)(execInfo.execute | EXEC_ERROR_LINE_REPORTED);
-          JsVar *stackTrace = jsvObjectGetChild(execInfo.hiddenRoot, "sTrace", JSV_STRING_0);
-          if (stackTrace) {
-            jsvAppendPrintf(stackTrace, "at ");
-            jspAppendStackTrace(stackTrace);
-            jsvUnLock(stackTrace);
-          }
-        }
-      }
       if ((((execInfo.execute)&EXEC_NO_PARSE_MASK)!=0))
         break;
       if (!(((execInfo.execute)&EXEC_RUN_MASK)==EXEC_YES)) {
@@ -9221,7 +9195,7 @@ __attribute__ ((noinline)) JsVar *jspeStatementVar() {
         a = jsvFindOrAddChildFromString(execInfo.baseScope, name);
       }
       if (!a) {
-        jspSetError(false);
+        jspSetError();
         return lastDefined;
       }
     }
@@ -9637,7 +9611,7 @@ __attribute__ ((noinline)) JsVar *jspeStatementTry() {
       }
     }
     if (shouldExecuteBefore) {
-      execInfo.execute = execInfo.execute & (JsExecFlags)~(EXEC_EXCEPTION|EXEC_ERROR_LINE_REPORTED);
+      execInfo.execute = execInfo.execute & (JsExecFlags)~EXEC_EXCEPTION;
       jsvUnLock(exception);
     }
     if (shouldExecuteBefore && !hadException) {
@@ -9903,18 +9877,18 @@ JsVar *jspEvaluateExpressionVar(JsVar *str) {
   do { } while(0);
   JsLex *oldLex = jslSetLex(&lex);
   jslInit(str);
-  lex.lineNumberOffset = oldLex->lineNumberOffset;
   JsVar *v = jspeExpression();
   jslKill();
   jslSetLex(oldLex);
   return jsvSkipNameAndUnLock(v);
 }
-JsVar *jspEvaluateVar(JsVar *str, JsVar *scope, uint16_t lineNumberOffset) {
+JsVar *jspEvaluateVar(JsVar *str, JsVar *scope, const char *stackTraceName) {
   JsLex lex;
   do { } while(0);
   JsLex *oldLex = jslSetLex(&lex);
   jslInit(str);
-  lex.lineNumberOffset = lineNumberOffset;
+  lex.lastLex = oldLex;
+  lex.functionName = stackTraceName?jsvNewFromString(stackTraceName):0;
   JsExecInfo oldExecInfo = execInfo;
   execInfo.execute = EXEC_YES;
   if (scope) {
@@ -9927,6 +9901,7 @@ JsVar *jspEvaluateVar(JsVar *str, JsVar *scope, uint16_t lineNumberOffset) {
   JsVar *v = jspParse();
   if (scope) jspeiClearScopes();
   jslKill();
+  jsvUnLock(lex.functionName);
   jslSetLex(oldLex);
   oldExecInfo.execute |= execInfo.execute & EXEC_PERSIST;
   execInfo = oldExecInfo;
@@ -9941,7 +9916,7 @@ JsVar *jspEvaluate(const char *str, bool stringIsStatic) {
   if (!evCode) return 0;
   JsVar *v = 0;
   if (!jsvIsMemoryFull())
-    v = jspEvaluateVar(evCode, 0, 0);
+    v = jspEvaluateVar(evCode, 0, "[raw]");
   jsvUnLock(evCode);
   return v;
 }
@@ -10006,7 +9981,7 @@ JsVar *jspEvaluateModule(JsVar *moduleContents) {
   execInfo.blockScope = 0;
   execInfo.blockCount = 0;
   execInfo.thisVar = scopeExports;
-  jsvUnLock(jspEvaluateVar(moduleContents, scope, 0));
+  jsvUnLock(jspEvaluateVar(moduleContents, scope, "module"));
   do { } while(0);
   do { } while(0);
   JsExecFlags hasError = (execInfo.execute)&EXEC_ERROR_MASK;
@@ -10528,7 +10503,8 @@ static const JswSymPtr jswSymbols_console[] = {
   { 6, JSWAT_VOID | (JSWAT_ARGUMENT_ARRAY << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_print},
   { 12, JSWAT_VOID | (JSWAT_ARGUMENT_ARRAY << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_print},
   { 17, JSWAT_VOID | (JSWAT_ARGUMENT_ARRAY << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_print},
-  { 21, JSWAT_VOID | (JSWAT_ARGUMENT_ARRAY << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_print}
+  { 21, JSWAT_VOID | (JSWAT_ARGUMENT_ARRAY << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_console_trace},
+  { 27, JSWAT_VOID | (JSWAT_ARGUMENT_ARRAY << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_print}
 };
 static const unsigned char jswSymbolIndex_console = 13;
 static const JswSymPtr jswSymbols_JSON[] = {
@@ -10674,7 +10650,7 @@ static const char jswSymbols_SyntaxError_proto_str[] = "toString\0";
 static const char jswSymbols_TypeError_proto_str[] = "toString\0";
 static const char jswSymbols_InternalError_proto_str[] = "toString\0";
 static const char jswSymbols_ReferenceError_proto_str[] = "toString\0";
-static const char jswSymbols_console_str[] = "debug\0error\0info\0log\0warn\0";
+static const char jswSymbols_console_str[] = "debug\0error\0info\0log\0trace\0warn\0";
 static const char jswSymbols_JSON_str[] = "parse\0stringify\0";
 static const char jswSymbols_Number_str[] = "MAX_VALUE\0MIN_VALUE\0NEGATIVE_INFINITY\0NaN\0POSITIVE_INFINITY\0";
 static const char jswSymbols_Number_proto_str[] = "toFixed\0";
@@ -10701,7 +10677,7 @@ const JswSymList jswSymbolTables[] = {
   {jswSymbols_TypeError_proto, jswSymbols_TypeError_proto_str, 1},
   {jswSymbols_InternalError_proto, jswSymbols_InternalError_proto_str, 1},
   {jswSymbols_ReferenceError_proto, jswSymbols_ReferenceError_proto_str, 1},
-  {jswSymbols_console, jswSymbols_console_str, 5},
+  {jswSymbols_console, jswSymbols_console_str, 6},
   {jswSymbols_JSON, jswSymbols_JSON_str, 2},
   {jswSymbols_Number, jswSymbols_Number_str, 5},
   {jswSymbols_Number_proto, jswSymbols_Number_proto_str, 1},
@@ -13465,6 +13441,13 @@ JsVar *_jswrap_error_constructor(JsVar *msg, char *type) {
   if (msg)
     jsvObjectSetChildAndUnLock(d, "message", jsvAsString(msg));
   jsvObjectSetChildAndUnLock(d, "type", jsvNewFromString(type));
+  if (lex) {
+    JsVar *stackTrace = jsvNewFromEmptyString();
+    if (stackTrace) {
+      jspAppendStackTrace(stackTrace, lex);
+      jsvObjectSetChildAndUnLock(d, "stack", stackTrace);
+    }
+  }
   return d;
 }
 JsVar *jswrap_error_constructor(JsVar *msg) {
@@ -13544,7 +13527,7 @@ JsVar *jswrap_function_constructor(JsVar *args) {
 JsVar *jswrap_eval(JsVar *v) {
   if (!v) return 0;
   JsVar *s = jsvAsString(v);
-  JsVar *result = jspEvaluateVar(s, 0, 0);
+  JsVar *result = jspEvaluateVar(s, 0, "eval");
   jsvUnLock(s);
   return result;
 }
@@ -13813,10 +13796,14 @@ void jswrap_print(JsVar *v) {
   jsvObjectIteratorFree(&it);
   jsiConsolePrintString("\n");
 }
+void jswrap_console_trace(JsVar *v) {
+  if (v) jswrap_print(v);
+  jslPrintStackTrace(vcbprintf_callback_jsiConsolePrintString, NULL, lex);
+}
 const unsigned int JSON_LIMIT_AMOUNT = 15;
 const unsigned int JSON_LIMITED_AMOUNT = 5;
-const unsigned int JSON_LIMIT_STRING_AMOUNT = 40;
-const unsigned int JSON_LIMITED_STRING_AMOUNT = 17;
+const unsigned int JSON_LIMIT_STRING_AMOUNT = 60;
+const unsigned int JSON_LIMITED_STRING_AMOUNT = 27;
 const unsigned int JSON_ITEMS_ON_LINE_OBJECT = 4;
 const char *JSON_LIMIT_TEXT = " ... ";
 JsVar *jswrap_json_stringify(JsVar *v, JsVar *replacer, JsVar *space) {

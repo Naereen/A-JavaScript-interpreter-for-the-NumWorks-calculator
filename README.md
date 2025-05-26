@@ -5,6 +5,8 @@
 This apps lets you run a [JavaScript](https://en.wikipedia.org/wiki/JavaScript) script on your [NumWorks calculator](https://www.numworks.com)!
 [![JavaScript logo](./src/icon.png)](https://en.wikipedia.org/wiki/JavaScript)
 
+----
+
 ## Install the app
 
 [![Screenshot documentation showing the icon in my list of applications](screenshot-documentations/screenshot-documentation-icon-of-application.png)](screenshot-documentations/screenshot-documentation-icon-of-application.png)
@@ -14,6 +16,8 @@ Installing is rather easy:
 1. (not yet, see 2) Download the latest `javascript.nwa` file from the [Releases](https://github.com/Naereen/A-JavaScript-interpreter-for-the-NumWorks-calculator/releases) page ;
 2. This Release page is not-yet ready, on this project, use [this folder instead](https://perso.crans.org/besson/publis/Numworks-apps/), and [this direct link](https://perso.crans.org/besson/publis/Numworks-apps/javascript.nwa) ;
 3. Head to [my.numworks.com/apps](https://my.numworks.com/apps) to send the `nwa` file on your calculator (on Google Chrome browser). On [this page](https://my.numworks.com/python/lilian-besson-1/javascript) you will be able to also send a default example of a JavaScript file (a tiny test script), and you can edit it yourself later on, on your calculator!
+
+----
 
 ## How to use the app
 
@@ -42,16 +46,28 @@ To rebuild the two `espruino_embedded.c` and `espruino_embedded.h` files from Es
 BOARD=EMBED RELEASE=1 V=1 make
 ```
 
+Then remove these lines from the `espruino_embedded.c` file:
+
+```c
+typedef unsigned char __u_char;
+typedef unsigned short int __u_short;
+...
+typedef __intmax_t intmax_t;
+typedef __uintmax_t uintmax_t;
+```
+
+Copy the files you obtained to the `./src/javascript/` folder on this project (they are included, you shouldn't have to do this, unless you want to help me developping this!).
+
 ----
 
 ## Documentation of the `Eadk` module accessible in JavaScript on the NumWorks
 
 Here is a short documentation for each function that I've ported from their interface in [`eadk.h`](https://github.com/numworks/epsilon/blob/master/eadk/include/eadk/eadk.h) to a working version in JavaScript.
 
-### Eadk predefined colors
+### ✅? Eadk predefined colors
 `Eadk.color_black`, `Eadk.color_white`, `Eadk.color_red`, `Eadk.color_green`, `Eadk.color_blue` are the five predefined colors.
 
-### Screen width and height
+### ✅? Screen width and height
 `Eadk.SCREEN_WIDTH` and `Eadk.SCREEN_HEIGHT` are the screen's width and height, respectively.
 
 ### ✅ Controlling the screen's brightness
@@ -59,24 +75,54 @@ Here is a short documentation for each function that I've ported from their inte
 
 Returns the screen's brightness, it's a 8 bits integer (`uint8_t` in C), ranging between 0 (min brightness, screen almost shut down) to 240 (for max brightness).
 
-#### ✅ `void Eadk.set_backlight_brightness(int brightness)`
+#### ✅ `void Eadk.backlight_set_brightness(int brightness)`
 
 Sets the screen's brightness to this value.
 `brightness` **must** be an integer value which fits inside a `uint8_t`, between 0 and 256.
 
-### Accessing the Battery levels
+### ❌ Accessing the Battery levels
 
-### `bool eadk_battery_is_charging()`
+#### ❌ `bool Eadk.battery_is_charging()`
 
 Indicates whether the battery is charging.
 
-### `uint8_t eadk_battery_level()`
+#### ❌ `uint8_t Eadk.battery_level()`
 
 Returns a 8 bits integer giving the battery level.
 
-### `float eadk_battery_voltage()`
+#### ❌ `float Eadk.battery_voltage()`
 
 Returns a floating value of the battery voltage (in Volt, I guess?).
+
+### Display
+
+#### ❌ `void Eadk.display_draw_string(const char* text, uint16_t x, uint16_t y, bool large_font, uint16_t text_color, uint16_t background_color)`
+
+TODO: I still haven't been able to define this one correctly, due to the `char* text` that I don't know how to declare in JSON (in the JSON to C process used by `jswrap_` to generate the corresponding C code).
+
+### Timing
+
+#### ✅? `void Eadk.timing_usleep(uint32_t us)`
+
+Sleep for `us` micro-seconds
+
+#### ✅? `void Eadk.timing_msleep(uint32_t ms)`
+
+Sleep for `ms` micro-seconds
+
+#### ❌ `uint64_t Eadk.timing_millis()`
+
+Time since boot of the machine? Not clear. FIXME:
+
+### Miscellanious
+
+#### ❌ `bool Eadk.usb_is_plugged()`
+
+Indicates whether the USB is plugging.
+
+#### ✅? `uint32_t Eadk.random()`
+
+Returns an almost truly random number, generated from the hardware RNG (a uint32_t, unsigned 32 bits integer).
 
 
 ### How to add new functions to Espruino JavaScript's `Eadk` module?

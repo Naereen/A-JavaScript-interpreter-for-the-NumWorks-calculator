@@ -1,11 +1,12 @@
 // This is NOT a Python script
 // This is a JavaScript file!
 
-// A bit hacky experimental: just a for loop, to sleep
+// A function around timing_msleep
 function msleep(s) {
   if (Eadk.timing_msleep instanceof Function) {
-      Eadk.timing_msleep(s);
+    Eadk.timing_msleep(s);
   } else {
+    // A bit hacky experimental: just a for loop, to sleep
       for (let j = 1; j <= s; j++) {
           // Just a comment here
       }
@@ -16,12 +17,14 @@ console.log("Hello world from JavaScript!");
 console.log("Testing Eadk functions:");
 msleep(5000);
 
+// Brightness
+
 const brightness = Eadk.backlight_brightness();
 console.log("Eadk.backlight_brightness() =", Eadk.backlight_brightness());
 msleep(2000);
 
 // Iterate some times from full brightness to zero brightness
-const number_of_dwarfs = 13;
+const number_of_dwarfs = 3;
 for (let dwarf = 1; dwarf <= number_of_dwarfs; dwarf++) {
 
   // Let's go into the dark
@@ -39,46 +42,89 @@ for (let dwarf = 1; dwarf <= number_of_dwarfs; dwarf++) {
   }
 }
 
-msleep(1000);
+msleep(5000);
 
+//
 // Let's test the constants SCREEN_WIDTH, SCREEN_HEIGHT
+//
 console.log("Eadk.SCREEN_WIDTH =", Eadk.SCREEN_WIDTH);
-msleep(1000);
+msleep(5000);
 console.log("Eadk.SCREEN_HEIGHT =", Eadk.SCREEN_HEIGHT);
-msleep(1000);
+msleep(5000);
 
+// FIXME: these functions seem to not be available in NumWorks' EADK library.
+//
 // Let's test the battery API
+//
 console.log("Eadk.battery_is_charging() =", Eadk.battery_is_charging());
-msleep(1000);
+msleep(5000);
 console.log("Eadk.battery_level() =", Eadk.battery_level());
-msleep(1000);
+msleep(5000);
 console.log("Eadk.battery_voltage() =", Eadk.battery_voltage());
-msleep(1000);
+msleep(5000);
 
+//
+// Display
+//
 
-// Let's test the colors and display_draw_string
-// First display on white background, and big text
-const big_text   = 1; // 1 for big text
-Eadk.display_draw_string("Hello in red on white ?", 20, 10, big_text, Eadk.color_red, Eadk.color_white);
-msleep(1000);
-Eadk.display_draw_string("Hello in green on white ?", 40, 10, big_text, Eadk.color_green, Eadk.color_white);
-msleep(1000);
-Eadk.display_draw_string("Hello in blue on white ?", 60, 10, big_text, Eadk.color_blue, Eadk.color_white);
-msleep(1000);
-Eadk.display_draw_string("Hello in black on white ?", 60, 10, big_text, Eadk.color_black, Eadk.color_white);
-msleep(1000);
+// // Let's test the colors and display_draw_string
+// // First display on white background, and big text
+// const big_text   = 1; // 1 for big text
+// Eadk.display_draw_string("Hello in red on white ?", 20, 10, big_text, Eadk.color_red, Eadk.color_white);
+// msleep(1000);
+// Eadk.display_draw_string("Hello in green on white ?", 40, 10, big_text, Eadk.color_green, Eadk.color_white);
+// msleep(1000);
+// Eadk.display_draw_string("Hello in blue on white ?", 60, 10, big_text, Eadk.color_blue, Eadk.color_white);
+// msleep(1000);
+// Eadk.display_draw_string("Hello in black on white ?", 60, 10, big_text, Eadk.color_black, Eadk.color_white);
+// msleep(1000);
 
-// Then display on black background, and small text
-const small_text = 0; // 0 for small text
-Eadk.display_draw_string("Hello in red on black ?", 20, 10, small_text, Eadk.color_red, Eadk.color_black);
-msleep(1000);
-Eadk.display_draw_string("Hello in green on black ?", 40, 10, small_text, Eadk.color_green, Eadk.color_black);
-msleep(1000);
-Eadk.display_draw_string("Hello in blue on black ?", 60, 10, small_text, Eadk.color_blue, Eadk.color_black);
-msleep(1000);
-Eadk.display_draw_string("Hello in white on black ?", 60, 10, small_text, Eadk.color_white, Eadk.color_black);
-msleep(1000);
+// // Then display on black background, and small text
+// const small_text = 0; // 0 for small text
+// Eadk.display_draw_string("Hello in red on black ?", 20, 10, small_text, Eadk.color_red, Eadk.color_black);
+// msleep(1000);
+// Eadk.display_draw_string("Hello in green on black ?", 40, 10, small_text, Eadk.color_green, Eadk.color_black);
+// msleep(1000);
+// Eadk.display_draw_string("Hello in blue on black ?", 60, 10, small_text, Eadk.color_blue, Eadk.color_black);
+// msleep(1000);
+// Eadk.display_draw_string("Hello in white on black ?", 60, 10, small_text, Eadk.color_white, Eadk.color_black);
+// msleep(1000);
 
+//
+// Timing
+//
+
+// Let's test the function Eadk.timing_usleep(5000000)
+console.log("Eadk.timing_usleep(5000000)...");
+Eadk.timing_usleep(5000000);
+
+// Let's test the function Eadk.timing_msleep(5000)
+console.log("Eadk.timing_msleep(5000)...");
+Eadk.timing_msleep(5000);
+
+// FIXME: these functions seem to not be available in NumWorks' EADK library.
+// Let's test the function Eadk.timing_millis()
+console.log("Eadk.timing_millis() =", Eadk.timing_millis());
+msleep(5000);
+
+//
+// Misc
+//
+
+// FIXME: these functions seem to not be available in NumWorks' EADK library.
+// Let's test the function Eadk.eadk_usb_is_plugged()
+console.log("Eadk.eadk_usb_is_plugged() =", Eadk.eadk_usb_is_plugged());
+msleep(5000);
+
+// Let's test the function Eadk.eadk_random()
+for (let index = 0; index < 100; index++) {
+  console.log("Eadk.eadk_random() =", Eadk.eadk_random());
+  msleep(50);
+}
+
+//
 // Finish for this test script
+//
+
 console.log("End for the tests of Eadk functions!");
 msleep(1000);

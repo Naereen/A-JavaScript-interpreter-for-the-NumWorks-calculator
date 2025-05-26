@@ -24,12 +24,12 @@ void __exidx_end() { }
 void jshKickSoftWatchDog() {
 }
 
-// XXX: do we need this, for our app?
+// We don't need this, for our app, but apparently Espruino needs it
 uint64_t ejs_get_microseconds() {
   return (uint64_t) (eadk_timing_millis() * 1000);
 }
 
-// TODO: do we need this, for our app?
+// We don't need this, for our app, but apparently Espruino needs it
 void ejs_print(const char *str) {
   printf("%s", str);
 }
@@ -38,7 +38,7 @@ void ejs_print(const char *str) {
 // int main(int argc, char ** argv) {
 int main() {
 
-  printf("NumWorks's Embedded JavaScript interpreter v0.0.2\n");
+  printf("NumWorks's Embedded JavaScript interpreter v0.0.3\n");
   eadk_timing_msleep(1000);
   printf("Based on Espruino, by Naereen\n");
   eadk_timing_msleep(1000);

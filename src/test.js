@@ -10,7 +10,7 @@ const brightness = Eadk.backlight_brightness();
 console.log("Eadk.backlight_brightness() =", Eadk.backlight_brightness());
 Eadk.timing_msleep(1000);
 
-Eadk.set_backlight_brightness(1);
+Eadk.set_backlight_brightness(0);
 console.log("Eadk.backlight_brightness() =", Eadk.backlight_brightness());
 Eadk.timing_msleep(1000);
 

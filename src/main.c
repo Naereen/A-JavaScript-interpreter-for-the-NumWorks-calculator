@@ -5,8 +5,8 @@
 
 #include "crt_stubs.h"
 // #include <sys/time.h> // gettimeofday
-#include <eadk.h>
-// #include "eadk_lib.h"
+#include <eadk.h> // For all the NumWorks's EADK functions
+
 #include "storage.h"
 #include "espruino_embedded.h"
 

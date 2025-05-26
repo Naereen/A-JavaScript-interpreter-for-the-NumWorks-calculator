@@ -9996,6 +9996,249 @@ JsVar *jspGetPrototypeOwner(JsVar *proto) {
   }
   return 0;
 }
+
+typedef uint16_t eadk_color_t;
+static const eadk_color_t eadk_color_black = 0x0;
+static const eadk_color_t eadk_color_white = 0xFFFF;
+static const eadk_color_t eadk_color_red = 0xF800;
+static const eadk_color_t eadk_color_green = 0x07E0;
+static const eadk_color_t eadk_color_blue = 0x001F;
+typedef struct {
+  uint16_t x;
+  uint16_t y;
+} eadk_point_t;
+typedef struct {
+  uint16_t x;
+  uint16_t y;
+  uint16_t width;
+  uint16_t height;
+} eadk_rect_t;
+static const eadk_rect_t eadk_screen_rect = {0, 0, 320,
+                                             240};
+typedef uint64_t eadk_keyboard_state_t;
+typedef enum {
+  eadk_key_left = 0,
+  eadk_key_up = 1,
+  eadk_key_down = 2,
+  eadk_key_right = 3,
+  eadk_key_ok = 4,
+  eadk_key_back = 5,
+  eadk_key_home = 6,
+  eadk_key_on_off = 8,
+  eadk_key_shift = 12,
+  eadk_key_alpha = 13,
+  eadk_key_xnt = 14,
+  eadk_key_var = 15,
+  eadk_key_toolbox = 16,
+  eadk_key_backspace = 17,
+  eadk_key_exp = 18,
+  eadk_key_ln = 19,
+  eadk_key_log = 20,
+  eadk_key_imaginary = 21,
+  eadk_key_comma = 22,
+  eadk_key_power = 23,
+  eadk_key_sine = 24,
+  eadk_key_cosine = 25,
+  eadk_key_tangent = 26,
+  eadk_key_pi = 27,
+  eadk_key_sqrt = 28,
+  eadk_key_square = 29,
+  eadk_key_seven = 30,
+  eadk_key_eight = 31,
+  eadk_key_nine = 32,
+  eadk_key_left_parenthesis = 33,
+  eadk_key_right_parenthesis = 34,
+  eadk_key_four = 36,
+  eadk_key_five = 37,
+  eadk_key_six = 38,
+  eadk_key_multiplication = 39,
+  eadk_key_division = 40,
+  eadk_key_one = 42,
+  eadk_key_two = 43,
+  eadk_key_three = 44,
+  eadk_key_plus = 45,
+  eadk_key_minus = 46,
+  eadk_key_zero = 48,
+  eadk_key_dot = 49,
+  eadk_key_ee = 50,
+  eadk_key_ans = 51,
+  eadk_key_exe = 52
+} eadk_key_t;
+void _eadk_keyboard_scan_do_scan();
+uint32_t _eadk_keyboard_scan_low();
+uint32_t _eadk_keyboard_scan_high();
+static inline eadk_keyboard_state_t eadk_keyboard_scan() {
+  _eadk_keyboard_scan_do_scan();
+  uint64_t state = _eadk_keyboard_scan_high();
+  state <<= 32;
+  state |= _eadk_keyboard_scan_low();
+  return state;
+}
+static inline bool eadk_keyboard_key_down(eadk_keyboard_state_t state,
+                                          eadk_key_t key) {
+  return (state >> (uint8_t)key) & 1;
+}
+typedef uint16_t eadk_event_t;
+enum {
+  eadk_event_left = 0,
+  eadk_event_up = 1,
+  eadk_event_down = 2,
+  eadk_event_right = 3,
+  eadk_event_ok = 4,
+  eadk_event_back = 5,
+  eadk_event_shift = 12,
+  eadk_event_alpha = 13,
+  eadk_event_xnt = 14,
+  eadk_event_var = 15,
+  eadk_event_toolbox = 16,
+  eadk_event_backspace = 17,
+  eadk_event_exp = 18,
+  eadk_event_ln = 19,
+  eadk_event_log = 20,
+  eadk_event_imaginary = 21,
+  eadk_event_comma = 22,
+  eadk_event_power = 23,
+  eadk_event_sine = 24,
+  eadk_event_cosine = 25,
+  eadk_event_tangent = 26,
+  eadk_event_pi = 27,
+  eadk_event_sqrt = 28,
+  eadk_event_square = 29,
+  eadk_event_seven = 30,
+  eadk_event_eight = 31,
+  eadk_event_nine = 32,
+  eadk_event_left_parenthesis = 33,
+  eadk_event_right_parenthesis = 34,
+  eadk_event_four = 36,
+  eadk_event_five = 37,
+  eadk_event_six = 38,
+  eadk_event_multiplication = 39,
+  eadk_event_division = 40,
+  eadk_event_one = 42,
+  eadk_event_two = 43,
+  eadk_event_three = 44,
+  eadk_event_plus = 45,
+  eadk_event_minus = 46,
+  eadk_event_zero = 48,
+  eadk_event_dot = 49,
+  eadk_event_ee = 50,
+  eadk_event_ans = 51,
+  eadk_event_exe = 52,
+  eadk_event_shift_left = 54,
+  eadk_event_shift_up = 55,
+  eadk_event_shift_down = 56,
+  eadk_event_shift_right = 57,
+  eadk_event_alpha_lock = 67,
+  eadk_event_cut = 68,
+  eadk_event_copy = 69,
+  eadk_event_paste = 70,
+  eadk_event_clear = 71,
+  eadk_event_left_bracket = 72,
+  eadk_event_right_bracket = 73,
+  eadk_event_left_brace = 74,
+  eadk_event_right_brace = 75,
+  eadk_event_underscore = 76,
+  eadk_event_sto = 77,
+  eadk_event_arcsine = 78,
+  eadk_event_arccosine = 79,
+  eadk_event_arctangent = 80,
+  eadk_event_equal = 81,
+  eadk_event_lower = 82,
+  eadk_event_greater = 83,
+  eadk_event_colon = 122,
+  eadk_event_semicolon = 123,
+  eadk_event_double_quotes = 124,
+  eadk_event_percent = 125,
+  eadk_event_lower_a = 126,
+  eadk_event_lower_b = 127,
+  eadk_event_lower_c = 128,
+  eadk_event_lower_d = 129,
+  eadk_event_lower_e = 130,
+  eadk_event_lower_f = 131,
+  eadk_event_lower_g = 132,
+  eadk_event_lower_h = 133,
+  eadk_event_lower_i = 134,
+  eadk_event_lower_j = 135,
+  eadk_event_lower_k = 136,
+  eadk_event_lower_l = 137,
+  eadk_event_lower_m = 138,
+  eadk_event_lower_n = 139,
+  eadk_event_lower_o = 140,
+  eadk_event_lower_p = 141,
+  eadk_event_lower_q = 142,
+  eadk_event_lower_r = 144,
+  eadk_event_lower_s = 145,
+  eadk_event_lower_t = 146,
+  eadk_event_lower_u = 147,
+  eadk_event_lower_v = 148,
+  eadk_event_lower_w = 150,
+  eadk_event_lower_x = 151,
+  eadk_event_lower_y = 152,
+  eadk_event_lower_z = 153,
+  eadk_event_space = 154,
+  eadk_event_question = 156,
+  eadk_event_exclamation = 157,
+  eadk_event_upper_a = 180,
+  eadk_event_upper_b = 181,
+  eadk_event_upper_c = 182,
+  eadk_event_upper_d = 183,
+  eadk_event_upper_e = 184,
+  eadk_event_upper_f = 185,
+  eadk_event_upper_g = 186,
+  eadk_event_upper_h = 187,
+  eadk_event_upper_i = 188,
+  eadk_event_upper_j = 189,
+  eadk_event_upper_k = 190,
+  eadk_event_upper_l = 191,
+  eadk_event_upper_m = 192,
+  eadk_event_upper_n = 193,
+  eadk_event_upper_o = 194,
+  eadk_event_upper_p = 195,
+  eadk_event_upper_q = 196,
+  eadk_event_upper_r = 198,
+  eadk_event_upper_s = 199,
+  eadk_event_upper_t = 200,
+  eadk_event_upper_u = 201,
+  eadk_event_upper_v = 202,
+  eadk_event_upper_w = 204,
+  eadk_event_upper_x = 205,
+  eadk_event_upper_y = 206,
+  eadk_event_upper_z = 207,
+};
+eadk_event_t eadk_event_get(int32_t* timeout);
+void eadk_backlight_set_brightness(uint8_t brightness);
+uint8_t eadk_backlight_brightness();
+bool eadk_battery_is_charging();
+uint8_t eadk_battery_level();
+float eadk_battery_voltage();
+void eadk_display_push_rect(eadk_rect_t rect, const eadk_color_t* pixels);
+void eadk_display_push_rect_uniform(eadk_rect_t rect, eadk_color_t color);
+void eadk_display_pull_rect(eadk_rect_t rect, eadk_color_t* pixels);
+bool eadk_display_wait_for_vblank();
+void eadk_display_draw_string(const char* text, eadk_point_t point,
+                              bool large_font, eadk_color_t text_color,
+                              eadk_color_t background_color);
+void eadk_timing_usleep(uint32_t us);
+void eadk_timing_msleep(uint32_t ms);
+uint32_t _eadk_timing_millis_low();
+uint32_t _eadk_timing_millis_high();
+static inline uint64_t eadk_timing_millis() {
+  uint64_t millis = _eadk_timing_millis_high();
+  millis <<= 32;
+  millis |= _eadk_timing_millis_low();
+  return millis;
+}
+extern const char* eadk_external_data;
+extern size_t eadk_external_data_size;
+bool eadk_usb_is_plugged();
+uint32_t eadk_random();
+int jswrap_backlight_brightness(void);
+void jswrap_set_backlight_brightness(int brightness);
+int jswrap_color_black(void);
+int jswrap_color_white(void);
+int jswrap_color_red(void);
+int jswrap_color_green(void);
+int jswrap_color_blue(void);
 JsVar *jswrap_array_constructor(JsVar *args);
 bool jswrap_array_contains(JsVar *parent, JsVar *value);
 JsVar *jswrap_array_indexOf(JsVar *parent, JsVar *value, JsVarInt startIdx);
@@ -10278,6 +10521,9 @@ static JsVarFloat gen_jswrap_Math_min(JsVar* args) {
 static JsVarFloat gen_jswrap_Math_max(JsVar* args) {
   return jswrap_math_minmax(args, true);
 }
+static JsVar* gen_jswrap_Eadk_Eadk() {
+  return NULL;
+}
 static JsVar* gen_jswrap_ArrayBufferView_ArrayBufferView() {
   return NULL;
 }
@@ -10319,6 +10565,16 @@ JsVar *jswBinarySearch(const JswSymList *symbolsPtr, JsVar *parent, const char *
   }
   return 0;
 }
+static const JswSymPtr jswSymbols_Eadk[] = {
+  { 0, JSWAT_INT32, (void*)jswrap_backlight_brightness},
+  { 21, JSWAT_INT32 | JSWAT_EXECUTE_IMMEDIATELY, (void*)jswrap_color_black},
+  { 33, JSWAT_INT32 | JSWAT_EXECUTE_IMMEDIATELY, (void*)jswrap_color_blue},
+  { 44, JSWAT_INT32 | JSWAT_EXECUTE_IMMEDIATELY, (void*)jswrap_color_green},
+  { 56, JSWAT_INT32 | JSWAT_EXECUTE_IMMEDIATELY, (void*)jswrap_color_red},
+  { 66, JSWAT_INT32 | JSWAT_EXECUTE_IMMEDIATELY, (void*)jswrap_color_white},
+  { 78, JSWAT_VOID | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_set_backlight_brightness}
+};
+static const unsigned char jswSymbolIndex_Eadk = 0;
 static const JswSymPtr jswSymbols_global[] = {
   { 0, JSWAT_JSVAR | (JSWAT_ARGUMENT_ARRAY << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_array_constructor},
   { 6, JSWAT_JSVAR | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_arraybuffer_constructor},
@@ -10326,51 +10582,52 @@ static const JswSymPtr jswSymbols_global[] = {
   { 34, JSWAT_BOOL | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_boolean_constructor},
   { 42, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*3)), (void*)jswrap_dataview_constructor},
   { 51, JSWAT_JSVAR | (JSWAT_ARGUMENT_ARRAY << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_date_constructor},
-  { 56, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_error_constructor},
-  { 62, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*3)), (void*)gen_jswrap_Float32Array_Float32Array},
-  { 75, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*3)), (void*)gen_jswrap_Float64Array_Float64Array},
-  { 88, JSWAT_JSVAR | (JSWAT_ARGUMENT_ARRAY << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_function_constructor},
-  { 97, JSWAT_INT32 | JSWAT_EXECUTE_IMMEDIATELY, (void*)gen_jswrap_HIGH},
-  { 102, JSWAT_JSVARFLOAT | JSWAT_EXECUTE_IMMEDIATELY, (void*)gen_jswrap_Infinity},
-  { 111, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*3)), (void*)gen_jswrap_Int16Array_Int16Array},
-  { 122, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*3)), (void*)gen_jswrap_Int32Array_Int32Array},
-  { 133, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*3)), (void*)gen_jswrap_Int8Array_Int8Array},
-  { 143, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_internalerror_constructor},
-  { 157, JSWAT_JSVAR, (void*)gen_jswrap_JSON_JSON},
-  { 162, JSWAT_INT32 | JSWAT_EXECUTE_IMMEDIATELY, (void*)gen_jswrap_LOW},
-  { 166, JSWAT_JSVAR, (void*)gen_jswrap_Math_Math},
-  { 171, JSWAT_JSVAR, (void*)gen_jswrap_Modules_Modules},
-  { 179, JSWAT_JSVARFLOAT | JSWAT_EXECUTE_IMMEDIATELY, (void*)gen_jswrap_NaN},
-  { 183, JSWAT_JSVAR | (JSWAT_ARGUMENT_ARRAY << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_number_constructor},
-  { 190, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_object_constructor},
-  { 197, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_referenceerror_constructor},
-  { 212, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)), (void*)jswrap_regexp_constructor},
-  { 219, JSWAT_JSVAR | (JSWAT_ARGUMENT_ARRAY << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_string_constructor},
-  { 226, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_syntaxerror_constructor},
-  { 238, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_typeerror_constructor},
-  { 248, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*3)), (void*)gen_jswrap_Uint16Array_Uint16Array},
-  { 260, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*3)), (void*)gen_jswrap_Uint24Array_Uint24Array},
-  { 272, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*3)), (void*)gen_jswrap_Uint32Array_Uint32Array},
-  { 284, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*3)), (void*)gen_jswrap_Uint8Array_Uint8Array},
-  { 295, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*3)), (void*)gen_jswrap_Uint8ClampedArray_Uint8ClampedArray},
-  { 313, JSWAT_JSVAR | JSWAT_EXECUTE_IMMEDIATELY, (void*)jswrap_arguments},
-  { 323, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_atob},
-  { 328, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_btoa},
-  { 333, JSWAT_JSVAR, (void*)gen_jswrap_console_console},
-  { 341, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_decodeURIComponent},
-  { 360, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_encodeURIComponent},
-  { 379, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_eval},
-  { 384, JSWAT_JSVAR | JSWAT_EXECUTE_IMMEDIATELY, (void*)jswrap_global},
-  { 391, JSWAT_JSVAR | JSWAT_EXECUTE_IMMEDIATELY, (void*)jswrap_global},
-  { 402, JSWAT_BOOL | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_isFinite},
-  { 411, JSWAT_BOOL | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_isNaN},
-  { 417, JSWAT_JSVARFLOAT | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_parseFloat},
-  { 428, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)), (void*)jswrap_parseInt},
-  { 437, JSWAT_VOID | (JSWAT_ARGUMENT_ARRAY << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_print},
-  { 443, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_require},
-  { 451, JSWAT_VOID | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_trace}
+  { 56, JSWAT_JSVAR, (void*)gen_jswrap_Eadk_Eadk},
+  { 61, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_error_constructor},
+  { 67, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*3)), (void*)gen_jswrap_Float32Array_Float32Array},
+  { 80, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*3)), (void*)gen_jswrap_Float64Array_Float64Array},
+  { 93, JSWAT_JSVAR | (JSWAT_ARGUMENT_ARRAY << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_function_constructor},
+  { 102, JSWAT_INT32 | JSWAT_EXECUTE_IMMEDIATELY, (void*)gen_jswrap_HIGH},
+  { 107, JSWAT_JSVARFLOAT | JSWAT_EXECUTE_IMMEDIATELY, (void*)gen_jswrap_Infinity},
+  { 116, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*3)), (void*)gen_jswrap_Int16Array_Int16Array},
+  { 127, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*3)), (void*)gen_jswrap_Int32Array_Int32Array},
+  { 138, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*3)), (void*)gen_jswrap_Int8Array_Int8Array},
+  { 148, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_internalerror_constructor},
+  { 162, JSWAT_JSVAR, (void*)gen_jswrap_JSON_JSON},
+  { 167, JSWAT_INT32 | JSWAT_EXECUTE_IMMEDIATELY, (void*)gen_jswrap_LOW},
+  { 171, JSWAT_JSVAR, (void*)gen_jswrap_Math_Math},
+  { 176, JSWAT_JSVAR, (void*)gen_jswrap_Modules_Modules},
+  { 184, JSWAT_JSVARFLOAT | JSWAT_EXECUTE_IMMEDIATELY, (void*)gen_jswrap_NaN},
+  { 188, JSWAT_JSVAR | (JSWAT_ARGUMENT_ARRAY << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_number_constructor},
+  { 195, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_object_constructor},
+  { 202, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_referenceerror_constructor},
+  { 217, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)), (void*)jswrap_regexp_constructor},
+  { 224, JSWAT_JSVAR | (JSWAT_ARGUMENT_ARRAY << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_string_constructor},
+  { 231, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_syntaxerror_constructor},
+  { 243, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_typeerror_constructor},
+  { 253, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*3)), (void*)gen_jswrap_Uint16Array_Uint16Array},
+  { 265, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*3)), (void*)gen_jswrap_Uint24Array_Uint24Array},
+  { 277, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*3)), (void*)gen_jswrap_Uint32Array_Uint32Array},
+  { 289, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*3)), (void*)gen_jswrap_Uint8Array_Uint8Array},
+  { 300, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*3)), (void*)gen_jswrap_Uint8ClampedArray_Uint8ClampedArray},
+  { 318, JSWAT_JSVAR | JSWAT_EXECUTE_IMMEDIATELY, (void*)jswrap_arguments},
+  { 328, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_atob},
+  { 333, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_btoa},
+  { 338, JSWAT_JSVAR, (void*)gen_jswrap_console_console},
+  { 346, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_decodeURIComponent},
+  { 365, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_encodeURIComponent},
+  { 384, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_eval},
+  { 389, JSWAT_JSVAR | JSWAT_EXECUTE_IMMEDIATELY, (void*)jswrap_global},
+  { 396, JSWAT_JSVAR | JSWAT_EXECUTE_IMMEDIATELY, (void*)jswrap_global},
+  { 407, JSWAT_BOOL | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_isFinite},
+  { 416, JSWAT_BOOL | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_isNaN},
+  { 422, JSWAT_JSVARFLOAT | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_parseFloat},
+  { 433, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)), (void*)jswrap_parseInt},
+  { 442, JSWAT_VOID | (JSWAT_ARGUMENT_ARRAY << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_print},
+  { 448, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_require},
+  { 456, JSWAT_VOID | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_trace}
 };
-static const unsigned char jswSymbolIndex_global = 0;
+static const unsigned char jswSymbolIndex_global = 1;
 static const JswSymPtr jswSymbols_Array_proto[] = {
   { 0, JSWAT_JSVAR | JSWAT_THIS_ARG | (JSWAT_ARGUMENT_ARRAY << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_array_concat},
   { 7, JSWAT_JSVAR | JSWAT_THIS_ARG | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)), (void*)jswrap_array_every},
@@ -10396,15 +10653,15 @@ static const JswSymPtr jswSymbols_Array_proto[] = {
   { 134, JSWAT_JSVAR | JSWAT_THIS_ARG | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_object_toString},
   { 143, JSWAT_INT32 | JSWAT_THIS_ARG | (JSWAT_ARGUMENT_ARRAY << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_array_unshift}
 };
-static const unsigned char jswSymbolIndex_Array_proto = 1;
+static const unsigned char jswSymbolIndex_Array_proto = 2;
 static const JswSymPtr jswSymbols_Array[] = {
   { 0, JSWAT_BOOL | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)gen_jswrap_Array_isArray}
 };
-static const unsigned char jswSymbolIndex_Array = 2;
+static const unsigned char jswSymbolIndex_Array = 3;
 static const JswSymPtr jswSymbols_ArrayBuffer_proto[] = {
   { 0, JSWAT_INT32 | JSWAT_THIS_ARG | JSWAT_EXECUTE_IMMEDIATELY, (void*)gen_jswrap_ArrayBuffer_byteLength}
 };
-static const unsigned char jswSymbolIndex_ArrayBuffer_proto = 3;
+static const unsigned char jswSymbolIndex_ArrayBuffer_proto = 4;
 static const JswSymPtr jswSymbols_ArrayBufferView_proto[] = {
   { 0, JSWAT_JSVAR | JSWAT_THIS_ARG | JSWAT_EXECUTE_IMMEDIATELY, (void*)gen_jswrap_ArrayBufferView_buffer},
   { 7, JSWAT_INT32 | JSWAT_THIS_ARG | JSWAT_EXECUTE_IMMEDIATELY, (void*)gen_jswrap_ArrayBufferView_byteLength},
@@ -10425,7 +10682,7 @@ static const JswSymPtr jswSymbols_ArrayBufferView_proto[] = {
   { 115, JSWAT_JSVAR | JSWAT_THIS_ARG | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_arraybufferview_sort},
   { 120, JSWAT_JSVAR | JSWAT_THIS_ARG | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)), (void*)jswrap_arraybufferview_subarray}
 };
-static const unsigned char jswSymbolIndex_ArrayBufferView_proto = 4;
+static const unsigned char jswSymbolIndex_ArrayBufferView_proto = 5;
 static const JswSymPtr jswSymbols_DataView_proto[] = {
   { 0, JSWAT_JSVAR | JSWAT_THIS_ARG | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_BOOL << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)), (void*)gen_jswrap_DataView_getFloat32},
   { 11, JSWAT_JSVAR | JSWAT_THIS_ARG | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_BOOL << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)), (void*)gen_jswrap_DataView_getFloat64},
@@ -10444,12 +10701,12 @@ static const JswSymPtr jswSymbols_DataView_proto[] = {
   { 135, JSWAT_VOID | JSWAT_THIS_ARG | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)) | (JSWAT_BOOL << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*3)), (void*)gen_jswrap_DataView_setUint32},
   { 145, JSWAT_VOID | JSWAT_THIS_ARG | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)) | (JSWAT_BOOL << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*3)), (void*)gen_jswrap_DataView_setUint8}
 };
-static const unsigned char jswSymbolIndex_DataView_proto = 5;
+static const unsigned char jswSymbolIndex_DataView_proto = 6;
 static const JswSymPtr jswSymbols_Date[] = {
   { 0, JSWAT_JSVARFLOAT, (void*)jswrap_date_now},
   { 4, JSWAT_JSVARFLOAT | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_date_parse}
 };
-static const unsigned char jswSymbolIndex_Date = 6;
+static const unsigned char jswSymbolIndex_Date = 7;
 static const JswSymPtr jswSymbols_Date_proto[] = {
   { 0, JSWAT_INT32 | JSWAT_THIS_ARG, (void*)jswrap_date_getDate},
   { 8, JSWAT_INT32 | JSWAT_THIS_ARG, (void*)jswrap_date_getDay},
@@ -10477,27 +10734,27 @@ static const JswSymPtr jswSymbols_Date_proto[] = {
   { 247, JSWAT_JSVAR | JSWAT_THIS_ARG, (void*)jswrap_date_toUTCString},
   { 259, JSWAT_JSVARFLOAT | JSWAT_THIS_ARG, (void*)jswrap_date_getTime}
 };
-static const unsigned char jswSymbolIndex_Date_proto = 7;
+static const unsigned char jswSymbolIndex_Date_proto = 8;
 static const JswSymPtr jswSymbols_Error_proto[] = {
   { 0, JSWAT_JSVAR | JSWAT_THIS_ARG, (void*)jswrap_error_toString}
 };
-static const unsigned char jswSymbolIndex_Error_proto = 8;
+static const unsigned char jswSymbolIndex_Error_proto = 9;
 static const JswSymPtr jswSymbols_SyntaxError_proto[] = {
   { 0, JSWAT_JSVAR | JSWAT_THIS_ARG, (void*)jswrap_error_toString}
 };
-static const unsigned char jswSymbolIndex_SyntaxError_proto = 9;
+static const unsigned char jswSymbolIndex_SyntaxError_proto = 10;
 static const JswSymPtr jswSymbols_TypeError_proto[] = {
   { 0, JSWAT_JSVAR | JSWAT_THIS_ARG, (void*)jswrap_error_toString}
 };
-static const unsigned char jswSymbolIndex_TypeError_proto = 10;
+static const unsigned char jswSymbolIndex_TypeError_proto = 11;
 static const JswSymPtr jswSymbols_InternalError_proto[] = {
   { 0, JSWAT_JSVAR | JSWAT_THIS_ARG, (void*)jswrap_error_toString}
 };
-static const unsigned char jswSymbolIndex_InternalError_proto = 11;
+static const unsigned char jswSymbolIndex_InternalError_proto = 12;
 static const JswSymPtr jswSymbols_ReferenceError_proto[] = {
   { 0, JSWAT_JSVAR | JSWAT_THIS_ARG, (void*)jswrap_error_toString}
 };
-static const unsigned char jswSymbolIndex_ReferenceError_proto = 12;
+static const unsigned char jswSymbolIndex_ReferenceError_proto = 13;
 static const JswSymPtr jswSymbols_console[] = {
   { 0, JSWAT_VOID | (JSWAT_ARGUMENT_ARRAY << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_print},
   { 6, JSWAT_VOID | (JSWAT_ARGUMENT_ARRAY << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_print},
@@ -10506,12 +10763,12 @@ static const JswSymPtr jswSymbols_console[] = {
   { 21, JSWAT_VOID | (JSWAT_ARGUMENT_ARRAY << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_console_trace},
   { 27, JSWAT_VOID | (JSWAT_ARGUMENT_ARRAY << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_print}
 };
-static const unsigned char jswSymbolIndex_console = 13;
+static const unsigned char jswSymbolIndex_console = 14;
 static const JswSymPtr jswSymbols_JSON[] = {
   { 0, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_json_parse},
   { 6, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)) | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*3)), (void*)jswrap_json_stringify}
 };
-static const unsigned char jswSymbolIndex_JSON = 14;
+static const unsigned char jswSymbolIndex_JSON = 15;
 static const JswSymPtr jswSymbols_Number[] = {
   { 0, JSWAT_JSVARFLOAT | JSWAT_EXECUTE_IMMEDIATELY, (void*)gen_jswrap_Number_MAX_VALUE},
   { 10, JSWAT_JSVARFLOAT | JSWAT_EXECUTE_IMMEDIATELY, (void*)gen_jswrap_Number_MIN_VALUE},
@@ -10519,11 +10776,11 @@ static const JswSymPtr jswSymbols_Number[] = {
   { 38, JSWAT_JSVARFLOAT | JSWAT_EXECUTE_IMMEDIATELY, (void*)gen_jswrap_Number_NaN},
   { 42, JSWAT_JSVARFLOAT | JSWAT_EXECUTE_IMMEDIATELY, (void*)gen_jswrap_Number_POSITIVE_INFINITY}
 };
-static const unsigned char jswSymbolIndex_Number = 15;
+static const unsigned char jswSymbolIndex_Number = 16;
 static const JswSymPtr jswSymbols_Number_proto[] = {
   { 0, JSWAT_JSVAR | JSWAT_THIS_ARG | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_number_toFixed}
 };
-static const unsigned char jswSymbolIndex_Number_proto = 16;
+static const unsigned char jswSymbolIndex_Number_proto = 17;
 static const JswSymPtr jswSymbols_Object_proto[] = {
   { 0, JSWAT_JSVAR | JSWAT_THIS_ARG, (void*)jswrap_object_clone},
   { 6, JSWAT_BOOL | JSWAT_THIS_ARG | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_object_hasOwnProperty},
@@ -10533,7 +10790,7 @@ static const JswSymPtr jswSymbols_Object_proto[] = {
   { 62, JSWAT_JSVAR | JSWAT_THIS_ARG | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_object_toString},
   { 71, JSWAT_JSVAR | JSWAT_THIS_ARG, (void*)jswrap_object_valueOf}
 };
-static const unsigned char jswSymbolIndex_Object_proto = 17;
+static const unsigned char jswSymbolIndex_Object_proto = 18;
 static const JswSymPtr jswSymbols_Object[] = {
   { 0, JSWAT_JSVAR | (JSWAT_ARGUMENT_ARRAY << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_object_assign},
   { 7, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)), (void*)jswrap_object_create},
@@ -10549,19 +10806,19 @@ static const JswSymPtr jswSymbols_Object[] = {
   { 157, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)), (void*)jswrap_object_setPrototypeOf},
   { 172, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)gen_jswrap_Object_values}
 };
-static const unsigned char jswSymbolIndex_Object = 18;
+static const unsigned char jswSymbolIndex_Object = 19;
 static const JswSymPtr jswSymbols_Function_proto[] = {
   { 0, JSWAT_JSVAR | JSWAT_THIS_ARG | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)), (void*)jswrap_function_apply_or_call},
   { 6, JSWAT_JSVAR | JSWAT_THIS_ARG | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_ARGUMENT_ARRAY << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)), (void*)jswrap_function_bind},
   { 11, JSWAT_JSVAR | JSWAT_THIS_ARG | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_ARGUMENT_ARRAY << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)), (void*)jswrap_function_apply_or_call},
   { 16, JSWAT_VOID | JSWAT_THIS_ARG | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_function_replaceWith}
 };
-static const unsigned char jswSymbolIndex_Function_proto = 19;
+static const unsigned char jswSymbolIndex_Function_proto = 20;
 static const JswSymPtr jswSymbols_RegExp_proto[] = {
   { 0, JSWAT_JSVAR | JSWAT_THIS_ARG | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_regexp_exec},
   { 5, JSWAT_BOOL | JSWAT_THIS_ARG | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_regexp_test}
 };
-static const unsigned char jswSymbolIndex_RegExp_proto = 20;
+static const unsigned char jswSymbolIndex_RegExp_proto = 21;
 static const JswSymPtr jswSymbols_String_proto[] = {
   { 0, JSWAT_JSVAR | JSWAT_THIS_ARG | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_string_charAt},
   { 7, JSWAT_JSVAR | JSWAT_THIS_ARG | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_string_charCodeAt},
@@ -10587,18 +10844,18 @@ static const JswSymPtr jswSymbols_String_proto[] = {
   { 184, JSWAT_JSVAR | JSWAT_THIS_ARG, (void*)gen_jswrap_String_toUpperCase},
   { 196, JSWAT_JSVAR | JSWAT_THIS_ARG, (void*)jswrap_string_trim}
 };
-static const unsigned char jswSymbolIndex_String_proto = 21;
+static const unsigned char jswSymbolIndex_String_proto = 22;
 static const JswSymPtr jswSymbols_String[] = {
   { 0, JSWAT_JSVAR | (JSWAT_ARGUMENT_ARRAY << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_string_fromCharCode}
 };
-static const unsigned char jswSymbolIndex_String = 22;
+static const unsigned char jswSymbolIndex_String = 23;
 static const JswSymPtr jswSymbols_Modules[] = {
   { 0, JSWAT_VOID | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)), (void*)jswrap_modules_addCached},
   { 10, JSWAT_JSVAR, (void*)jswrap_modules_getCached},
   { 20, JSWAT_VOID, (void*)jswrap_modules_removeAllCached},
   { 36, JSWAT_VOID | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_modules_removeCached}
 };
-static const unsigned char jswSymbolIndex_Modules = 23;
+static const unsigned char jswSymbolIndex_Modules = 24;
 static const JswSymPtr jswSymbols_Math[] = {
   { 0, JSWAT_JSVARFLOAT | JSWAT_EXECUTE_IMMEDIATELY, (void*)gen_jswrap_Math_E},
   { 2, JSWAT_JSVARFLOAT | JSWAT_EXECUTE_IMMEDIATELY, (void*)gen_jswrap_Math_LN10},
@@ -10631,13 +10888,14 @@ static const JswSymPtr jswSymbols_Math[] = {
   { 141, JSWAT_JSVARFLOAT | (JSWAT_JSVARFLOAT << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)gen_jswrap_Math_tan},
   { 145, JSWAT_JSVARFLOAT | (JSWAT_JSVARFLOAT << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_JSVARFLOAT << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)), (void*)wrapAround}
 };
-static const unsigned char jswSymbolIndex_Math = 24;
+static const unsigned char jswSymbolIndex_Math = 25;
 static const JswSymPtr jswSymbols_heatshrink[] = {
   { 0, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_heatshrink_compress},
   { 9, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_heatshrink_decompress}
 };
-static const unsigned char jswSymbolIndex_heatshrink = 25;
-static const char jswSymbols_global_str[] = "Array\0ArrayBuffer\0ArrayBufferView\0Boolean\0DataView\0Date\0Error\0Float32Array\0Float64Array\0Function\0HIGH\0Infinity\0Int16Array\0Int32Array\0Int8Array\0InternalError\0JSON\0LOW\0Math\0Modules\0NaN\0Number\0Object\0ReferenceError\0RegExp\0String\0SyntaxError\0TypeError\0Uint16Array\0Uint24Array\0Uint32Array\0Uint8Array\0Uint8ClampedArray\0arguments\0atob\0btoa\0console\0decodeURIComponent\0encodeURIComponent\0eval\0global\0globalThis\0isFinite\0isNaN\0parseFloat\0parseInt\0print\0require\0trace\0";
+static const unsigned char jswSymbolIndex_heatshrink = 26;
+static const char jswSymbols_Eadk_str[] = "backlight_brightness\0color_black\0color_blue\0color_green\0color_red\0color_white\0set_backlight_brightness\0";
+static const char jswSymbols_global_str[] = "Array\0ArrayBuffer\0ArrayBufferView\0Boolean\0DataView\0Date\0Eadk\0Error\0Float32Array\0Float64Array\0Function\0HIGH\0Infinity\0Int16Array\0Int32Array\0Int8Array\0InternalError\0JSON\0LOW\0Math\0Modules\0NaN\0Number\0Object\0ReferenceError\0RegExp\0String\0SyntaxError\0TypeError\0Uint16Array\0Uint24Array\0Uint32Array\0Uint8Array\0Uint8ClampedArray\0arguments\0atob\0btoa\0console\0decodeURIComponent\0encodeURIComponent\0eval\0global\0globalThis\0isFinite\0isNaN\0parseFloat\0parseInt\0print\0require\0trace\0";
 static const char jswSymbols_Array_proto_str[] = "concat\0every\0fill\0filter\0find\0findIndex\0forEach\0includes\0indexOf\0join\0length\0map\0pop\0push\0reduce\0reverse\0shift\0slice\0some\0sort\0splice\0toString\0unshift\0";
 static const char jswSymbols_Array_str[] = "isArray\0";
 static const char jswSymbols_ArrayBuffer_proto_str[] = "byteLength\0";
@@ -10664,7 +10922,8 @@ static const char jswSymbols_Modules_str[] = "addCached\0getCached\0removeAllCac
 static const char jswSymbols_Math_str[] = "E\0LN10\0LN2\0LOG10E\0LOG2E\0PI\0SQRT1_2\0SQRT2\0abs\0acos\0asin\0atan\0atan2\0ceil\0clip\0cos\0exp\0floor\0log\0max\0min\0pow\0randInt\0random\0round\0sign\0sin\0sqrt\0tan\0wrap\0";
 static const char jswSymbols_heatshrink_str[] = "compress\0decompress\0";
 const JswSymList jswSymbolTables[] = {
-  {jswSymbols_global, jswSymbols_global_str, 49},
+  {jswSymbols_Eadk, jswSymbols_Eadk_str, 7},
+  {jswSymbols_global, jswSymbols_global_str, 50},
   {jswSymbols_Array_proto, jswSymbols_Array_proto_str, 23},
   {jswSymbols_Array, jswSymbols_Array_str, 1},
   {jswSymbols_ArrayBuffer_proto, jswSymbols_ArrayBuffer_proto_str, 1},
@@ -10759,6 +11018,7 @@ JsVar *jswFindBuiltInFunction(JsVar *parent, const char *name) {
 }
 const JswSymList *jswGetSymbolListForObject(JsVar *parent) {
   if (jsvIsNativeFunction(parent)) {
+    if ((void*)parent->varData.native.ptr==(void*)gen_jswrap_Eadk_Eadk) return &jswSymbolTables[jswSymbolIndex_Eadk];
     if ((void*)parent->varData.native.ptr==(void*)jswrap_array_constructor) return &jswSymbolTables[jswSymbolIndex_Array];
     if ((void*)parent->varData.native.ptr==(void*)jswrap_date_constructor) return &jswSymbolTables[jswSymbolIndex_Date];
     if ((void*)parent->varData.native.ptr==(void*)gen_jswrap_console_console) return &jswSymbolTables[jswSymbolIndex_console];
@@ -10797,7 +11057,7 @@ const JswSymList *jswGetSymbolListForObjectProto(JsVar *parent) {
   return &jswSymbolTables[jswSymbolIndex_Object_proto];
 }
 bool jswIsBuiltInObject(const char *name) {
-  const char *objNames = "Array\0ArrayBuffer\0ArrayBufferView\0Uint8Array\0Uint8ClampedArray\0Int8Array\0Uint16Array\0Int16Array\0Uint24Array\0Uint32Array\0Int32Array\0Float32Array\0Float64Array\0DataView\0Date\0Error\0SyntaxError\0TypeError\0InternalError\0ReferenceError\0Function\0console\0JSON\0Number\0Object\0Boolean\0RegExp\0String\0Modules\0Math\0";
+  const char *objNames = "Eadk\0Array\0ArrayBuffer\0ArrayBufferView\0Uint8Array\0Uint8ClampedArray\0Int8Array\0Uint16Array\0Int16Array\0Uint24Array\0Uint32Array\0Int32Array\0Float32Array\0Float64Array\0DataView\0Date\0Error\0SyntaxError\0TypeError\0InternalError\0ReferenceError\0Function\0console\0JSON\0Number\0Object\0Boolean\0RegExp\0String\0Modules\0Math\0";
   const char *s = objNames;
   while (*s) {
     if (strcmp(s, name)==0) return true;
@@ -10912,6 +11172,21 @@ JsVar *jswCallFunctionHack(void *function, JsnArgumentType argumentSpecifier, Js
     case JSWAT_INT32 | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)): {
       JsVar *result = 0;
       result = jsvNewFromInteger(((JsVarInt(*)(JsVarInt,JsVarInt))function)(jsvGetInteger((paramCount>0)?paramData[0]:0),jsvGetInteger((paramCount>1)?paramData[1]:0)));
+      return result;
+    }
+    case JSWAT_INT32: {
+      JsVar *result = 0;
+      result = jsvNewFromInteger(((JsVarInt(*)())function)());
+      return result;
+    }
+    case JSWAT_VOID | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)): {
+      JsVar *result = 0;
+      ((void(*)(JsVarInt))function)(jsvGetInteger((paramCount>0)?paramData[0]:0));
+      return result;
+    }
+    case JSWAT_INT32 | JSWAT_EXECUTE_IMMEDIATELY: {
+      JsVar *result = 0;
+      result = jsvNewFromInteger(((JsVarInt(*)())function)());
       return result;
     }
     case JSWAT_JSVAR | (JSWAT_ARGUMENT_ARRAY << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)): {
@@ -11102,11 +11377,6 @@ JsVar *jswCallFunctionHack(void *function, JsnArgumentType argumentSpecifier, Js
     case JSWAT_JSVAR | JSWAT_THIS_ARG | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)): {
       JsVar *result = 0;
       result = (((JsVar*(*)(JsVar*,int))function)(thisParam,jsvGetInteger((paramCount>0)?paramData[0]:0)));
-      return result;
-    }
-    case JSWAT_INT32 | JSWAT_EXECUTE_IMMEDIATELY: {
-      JsVar *result = 0;
-      result = jsvNewFromInteger(((int(*)())function)());
       return result;
     }
     case JSWAT_BOOL | JSWAT_THIS_ARG | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)): {
@@ -12156,6 +12426,39 @@ const JshPinInfo pinInfo[33] = {
            { JSH_PORTD, JSH_PIN0+31, JSH_ANALOG_NONE, { } },
            { JSH_PORTD, JSH_PIN0+32, JSH_ANALOG_NONE, { } },
 };
+int jswrap_backlight_brightness(void);
+void jswrap_set_backlight_brightness(int brightness);
+int jswrap_color_black(void);
+int jswrap_color_white(void);
+int jswrap_color_red(void);
+int jswrap_color_green(void);
+int jswrap_color_blue(void);
+int
+jswrap_backlight_brightness(void) {
+    jsiConsolePrintString("Call to jswrap_backlight_brightness()!\r\n");
+    int result = (int) eadk_backlight_brightness();
+    jsiConsolePrintf("Got backlight brightness = %i\r\n", result);
+    return result;
+}
+void jswrap_set_backlight_brightness(int brightness) {
+    jsiConsolePrintString("Call to jswrap_set_backlight_brightness()!\r\n");
+    eadk_backlight_set_brightness(brightness);
+}
+int jswrap_color_black(void) {
+    return 0x0;
+}
+int jswrap_color_white(void) {
+    return 0xFFFF;
+}
+int jswrap_color_red(void) {
+    return 0xF800;
+}
+int jswrap_color_green(void) {
+    return 0x07E0;
+}
+int jswrap_color_blue(void) {
+    return 0x001F;
+}
 JsVar *jswrap_array_constructor(JsVar *args) {
   do { } while(0);
   if (jsvGetArrayLength(args)==1) {

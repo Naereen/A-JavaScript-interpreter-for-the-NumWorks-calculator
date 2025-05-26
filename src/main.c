@@ -38,7 +38,9 @@ void ejs_print(const char *str) {
 // int main(int argc, char ** argv) {
 int main() {
 
-  printf("Embedded Espruino v0.0.1\n");
+  printf("NumWorks's Embedded JavaScript interpreter v0.0.2\n");
+  eadk_timing_msleep(1000);
+  printf("Based on Espruino, by Naereen\n");
   eadk_timing_msleep(1000);
 
   ejs_create(1000);
@@ -55,7 +57,7 @@ int main() {
   // DONE: I wasn't able to compile while depending on external data, but it works if reading from a local 'javascript.py' file.
   // const char * code = eadk_external_data;
 
-  const char * code = (code_from_file == NULL && file_len <= 0) ? "console.log(\"\\nHi from JavaScript interpreter! sleep(3s)\")\n// eadk.timing_msleep(3000)\ntypeof(NaN)" : (code_from_file + 1);
+  const char * code = (code_from_file == NULL && file_len <= 0) ? "console.log(\"Hi from JavaScript interpreter! sleep(3s)\");\n// Eadk.timing_msleep(3000);\ntypeof(NaN);" : (code_from_file + 1);
 
   printf("Executing code...\n");
   eadk_timing_msleep(1000);

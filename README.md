@@ -99,6 +99,10 @@ Returns a 8 bits integer giving the battery level.
 
 Returns a floating value of the battery voltage (in Volt, I guess?).
 
+> These functions are missing from the hardware!
+> See [this issue on NumWorks/epsilon's repository](https://github.com/numworks/epsilon/issues/2326)
+> TODO: [I could try to implement them myself, by SVC calls](https://github.com/Naereen/A-JavaScript-interpreter-for-the-NumWorks-calculator/issues/5)
+
 ### Display
 
 #### ❌ `void Eadk.display_draw_string(const char* text, uint16_t x, uint16_t y, bool large_font, uint16_t text_color, uint16_t background_color)`
@@ -107,15 +111,15 @@ TODO: I still haven't been able to define this one correctly, due to the `char* 
 
 ### Timing
 
-#### ✅? `void Eadk.timing_usleep(uint32_t us)`
+#### ✅ `void Eadk.timing_usleep(uint32_t us)`
 
 Sleep for `us` micro-seconds
 
-#### ✅? `void Eadk.timing_msleep(uint32_t ms)`
+#### ✅ `void Eadk.timing_msleep(uint32_t ms)`
 
 Sleep for `ms` micro-seconds
 
-#### ❌ `uint64_t Eadk.timing_millis()`
+#### ✅ `uint64_t Eadk.timing_millis()`
 
 Time since boot of the machine? Not clear. FIXME:
 
@@ -123,7 +127,11 @@ Time since boot of the machine? Not clear. FIXME:
 
 #### ❌ `bool Eadk.usb_is_plugged()`
 
-Indicates whether the USB is plugging.
+Indicates whether the USB is plugged.
+
+> This function is missing from the hardware!
+> See [this issue on NumWorks/epsilon's repository](https://github.com/numworks/epsilon/issues/2326)
+> TODO: [I could try to implement it myself, by SVC calls](https://github.com/Naereen/A-JavaScript-interpreter-for-the-NumWorks-calculator/issues/5)
 
 #### ✅? `uint32_t Eadk.random()`
 
@@ -141,35 +149,31 @@ The functions already present should give a good direction to follow!
 
 The example below runs now correctly and showcases a decreasing then increasing brightness, with small pauses between every change:
 
+For a more complete and length example, see [`src/test.js`](src/test.js).
+
 ```javascript
 // Save this to `javascript.py` on your NumWorks, and run it with
 // the "JS interpreter" NumWorks application!
 
-function msleep(s) {
-    for (let j = 1; j <= s; j++) {
-        // Just a comment here
-    }
-}
-
 console.log("Hello world from JavaScript!");
 console.log("Testing Eadk functions:");
-msleep(5000);
+Eadk.timing_msleep(5000);
 
 const brightness = Eadk.backlight_brightness();
 console.log("Eadk.backlight_brightness() =", Eadk.backlight_brightness());
-msleep(2000);
+Eadk.timing_msleep(2000);
 
 for (let dwarf = 1; dwarf <= 13; dwarf++) {
     for (let b = brightness; b >= 0; b=b-16) {
         Eadk.set_backlight_brightness(b);
         console.log("Eadk.backlight_brightness() =", Eadk.backlight_brightness());
-        msleep(50);
+        Eadk.timing_msleep(50);
     }
 
     for (let b = 0; b <= brightness; b=b+16) {
         Eadk.set_backlight_brightness(b);
         console.log("Eadk.backlight_brightness() =", Eadk.backlight_brightness());
-        msleep(50);
+        Eadk.timing_msleep(50);
     }
 }
 ```

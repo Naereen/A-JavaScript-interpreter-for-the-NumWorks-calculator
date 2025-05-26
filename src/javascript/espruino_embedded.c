@@ -9996,7 +9996,6 @@ JsVar *jspGetPrototypeOwner(JsVar *proto) {
   }
   return 0;
 }
-
 typedef uint16_t eadk_color_t;
 static const eadk_color_t eadk_color_black = 0x0;
 static const eadk_color_t eadk_color_white = 0xFFFF;
@@ -10064,16 +10063,7 @@ typedef enum {
   eadk_key_ans = 51,
   eadk_key_exe = 52
 } eadk_key_t;
-void _eadk_keyboard_scan_do_scan();
-uint32_t _eadk_keyboard_scan_low();
-uint32_t _eadk_keyboard_scan_high();
-static inline eadk_keyboard_state_t eadk_keyboard_scan() {
-  _eadk_keyboard_scan_do_scan();
-  uint64_t state = _eadk_keyboard_scan_high();
-  state <<= 32;
-  state |= _eadk_keyboard_scan_low();
-  return state;
-}
+eadk_keyboard_state_t eadk_keyboard_scan();
 static inline bool eadk_keyboard_key_down(eadk_keyboard_state_t state,
                                           eadk_key_t key) {
   return (state >> (uint8_t)key) & 1;
@@ -10220,29 +10210,32 @@ void eadk_display_draw_string(const char* text, eadk_point_t point,
                               eadk_color_t background_color);
 void eadk_timing_usleep(uint32_t us);
 void eadk_timing_msleep(uint32_t ms);
-uint32_t _eadk_timing_millis_low();
-uint32_t _eadk_timing_millis_high();
-static inline uint64_t eadk_timing_millis() {
-  uint64_t millis = _eadk_timing_millis_high();
-  millis <<= 32;
-  millis |= _eadk_timing_millis_low();
-  return millis;
-}
+uint64_t eadk_timing_millis();
 extern const char* eadk_external_data;
 extern size_t eadk_external_data_size;
 bool eadk_usb_is_plugged();
 uint32_t eadk_random();
-int jswrap_backlight_brightness(void);
-void jswrap_set_backlight_brightness(int brightness);
 int jswrap_color_black(void);
 int jswrap_color_white(void);
 int jswrap_color_red(void);
 int jswrap_color_green(void);
 int jswrap_color_blue(void);
+int jswrap_SCREEN_WIDTH(void);
+int jswrap_SCREEN_HEIGHT(void);
+int jswrap_backlight_brightness(void);
+void jswrap_backlight_set_brightness(int brightness);
+_Bool jswrap_battery_is_charging();
+uint8_t jswrap_battery_level();
+float jswrap_battery_voltage();
+void jswrap_timing_usleep(uint32_t us);
+void jswrap_timing_msleep(uint32_t ms);
+uint64_t jswrap_timing_millis();
+_Bool jswrap_usb_is_plugged();
+uint32_t jswrap_random();
 JsVar *jswrap_array_constructor(JsVar *args);
-bool jswrap_array_contains(JsVar *parent, JsVar *value);
+_Bool jswrap_array_contains(JsVar *parent, JsVar *value);
 JsVar *jswrap_array_indexOf(JsVar *parent, JsVar *value, JsVarInt startIdx);
-bool jswrap_array_includes(JsVar *parent, JsVar *value, JsVarInt startIdx);
+_Bool jswrap_array_includes(JsVar *parent, JsVar *value, JsVarInt startIdx);
 JsVar *jswrap_array_join(JsVar *parent, JsVar *filler);
 JsVarInt jswrap_array_push(JsVar *parent, JsVar *args);
 JsVar *jswrap_array_map(JsVar *parent, JsVar *funcVar, JsVar *thisVar);
@@ -10266,7 +10259,7 @@ typedef struct {
   int daysSinceEpoch;
   int ms,sec,min,hour;
   int zone;
-  bool is_dst;
+  _Bool is_dst;
 } TimeInDay;
 typedef struct {
   int daysSinceEpoch;
@@ -10277,10 +10270,10 @@ typedef struct {
 } CalendarDate;
 int getDayNumberFromDate(int y, int m, int d);
 void getDateFromDayNumber(int day, int *y, int *m, int *date);
-JsVarFloat getDstChangeTime(int y, int dow_number, int month, int dow, int day_offset, int timeOfDay, bool is_start, int dst_offset, int timezone, bool as_local_time);
-int jstGetEffectiveTimeZone(JsVarFloat ms, bool is_local_time, bool *is_dst);
+JsVarFloat getDstChangeTime(int y, int dow_number, int month, int dow, int day_offset, int timeOfDay, _Bool is_start, int dst_offset, int timezone, _Bool as_local_time);
+int jstGetEffectiveTimeZone(JsVarFloat ms, _Bool is_local_time, _Bool *is_dst);
 void setCorrectTimeZone(TimeInDay *td);
-TimeInDay getTimeFromMilliSeconds(JsVarFloat ms_in, bool forceGMT);
+TimeInDay getTimeFromMilliSeconds(JsVarFloat ms_in, _Bool forceGMT);
 JsVarFloat fromTimeInDay(TimeInDay *td);
 CalendarDate getCalendarDate(int d);
 int fromCalendarDate(CalendarDate *date);
@@ -10323,7 +10316,7 @@ JsVar *jswrap_heatshrink_decompress(JsVar *data);
 static JsVar* gen_jswrap_Array_pop(JsVar *parent) {
   return jsvSkipNameAndUnLock(jsvArrayPop(parent));
 }
-static bool gen_jswrap_Array_isArray(JsVar* var) {
+static _Bool gen_jswrap_Array_isArray(JsVar* var) {
   return jsvIsArray(var);
 }
 static JsVarInt gen_jswrap_ArrayBuffer_byteLength(JsVar *parent) {
@@ -10368,52 +10361,52 @@ static JsVarInt gen_jswrap_ArrayBufferView_byteLength(JsVar *parent) {
 static JsVarInt gen_jswrap_ArrayBufferView_byteOffset(JsVar *parent) {
   return parent->varData.arraybuffer.byteOffset;
 }
-static JsVar* gen_jswrap_DataView_getFloat32(JsVar *parent, JsVarInt byteOffset, bool littleEndian) {
+static JsVar* gen_jswrap_DataView_getFloat32(JsVar *parent, JsVarInt byteOffset, _Bool littleEndian) {
   return jswrap_dataview_get(parent, ARRAYBUFFERVIEW_FLOAT32, byteOffset, littleEndian);
 }
-static JsVar* gen_jswrap_DataView_getFloat64(JsVar *parent, JsVarInt byteOffset, bool littleEndian) {
+static JsVar* gen_jswrap_DataView_getFloat64(JsVar *parent, JsVarInt byteOffset, _Bool littleEndian) {
   return jswrap_dataview_get(parent, ARRAYBUFFERVIEW_FLOAT64, byteOffset, littleEndian);
 }
-static JsVar* gen_jswrap_DataView_getInt8(JsVar *parent, JsVarInt byteOffset, bool littleEndian) {
+static JsVar* gen_jswrap_DataView_getInt8(JsVar *parent, JsVarInt byteOffset, _Bool littleEndian) {
   return jswrap_dataview_get(parent, ARRAYBUFFERVIEW_INT8, byteOffset, littleEndian);
 }
-static JsVar* gen_jswrap_DataView_getInt16(JsVar *parent, JsVarInt byteOffset, bool littleEndian) {
+static JsVar* gen_jswrap_DataView_getInt16(JsVar *parent, JsVarInt byteOffset, _Bool littleEndian) {
   return jswrap_dataview_get(parent, ARRAYBUFFERVIEW_INT16, byteOffset, littleEndian);
 }
-static JsVar* gen_jswrap_DataView_getInt32(JsVar *parent, JsVarInt byteOffset, bool littleEndian) {
+static JsVar* gen_jswrap_DataView_getInt32(JsVar *parent, JsVarInt byteOffset, _Bool littleEndian) {
   return jswrap_dataview_get(parent, ARRAYBUFFERVIEW_INT32, byteOffset, littleEndian);
 }
-static JsVar* gen_jswrap_DataView_getUint8(JsVar *parent, JsVarInt byteOffset, bool littleEndian) {
+static JsVar* gen_jswrap_DataView_getUint8(JsVar *parent, JsVarInt byteOffset, _Bool littleEndian) {
   return jswrap_dataview_get(parent, ARRAYBUFFERVIEW_UINT8, byteOffset, littleEndian);
 }
-static JsVar* gen_jswrap_DataView_getUint16(JsVar *parent, JsVarInt byteOffset, bool littleEndian) {
+static JsVar* gen_jswrap_DataView_getUint16(JsVar *parent, JsVarInt byteOffset, _Bool littleEndian) {
   return jswrap_dataview_get(parent, ARRAYBUFFERVIEW_UINT16, byteOffset, littleEndian);
 }
-static JsVar* gen_jswrap_DataView_getUint32(JsVar *parent, JsVarInt byteOffset, bool littleEndian) {
+static JsVar* gen_jswrap_DataView_getUint32(JsVar *parent, JsVarInt byteOffset, _Bool littleEndian) {
   return jswrap_dataview_get(parent, ARRAYBUFFERVIEW_UINT32, byteOffset, littleEndian);
 }
-static void gen_jswrap_DataView_setFloat32(JsVar *parent, JsVarInt byteOffset, JsVar* value, bool littleEndian) {
+static void gen_jswrap_DataView_setFloat32(JsVar *parent, JsVarInt byteOffset, JsVar* value, _Bool littleEndian) {
   jswrap_dataview_set(parent, ARRAYBUFFERVIEW_FLOAT32, byteOffset, value, littleEndian);
 }
-static void gen_jswrap_DataView_setFloat64(JsVar *parent, JsVarInt byteOffset, JsVar* value, bool littleEndian) {
+static void gen_jswrap_DataView_setFloat64(JsVar *parent, JsVarInt byteOffset, JsVar* value, _Bool littleEndian) {
   jswrap_dataview_set(parent, ARRAYBUFFERVIEW_FLOAT64, byteOffset, value, littleEndian);
 }
-static void gen_jswrap_DataView_setInt8(JsVar *parent, JsVarInt byteOffset, JsVar* value, bool littleEndian) {
+static void gen_jswrap_DataView_setInt8(JsVar *parent, JsVarInt byteOffset, JsVar* value, _Bool littleEndian) {
   jswrap_dataview_set(parent, ARRAYBUFFERVIEW_INT8, byteOffset, value, littleEndian);
 }
-static void gen_jswrap_DataView_setInt16(JsVar *parent, JsVarInt byteOffset, JsVar* value, bool littleEndian) {
+static void gen_jswrap_DataView_setInt16(JsVar *parent, JsVarInt byteOffset, JsVar* value, _Bool littleEndian) {
   jswrap_dataview_set(parent, ARRAYBUFFERVIEW_INT16, byteOffset, value, littleEndian);
 }
-static void gen_jswrap_DataView_setInt32(JsVar *parent, JsVarInt byteOffset, JsVar* value, bool littleEndian) {
+static void gen_jswrap_DataView_setInt32(JsVar *parent, JsVarInt byteOffset, JsVar* value, _Bool littleEndian) {
   jswrap_dataview_set(parent, ARRAYBUFFERVIEW_INT32, byteOffset, value, littleEndian);
 }
-static void gen_jswrap_DataView_setUint8(JsVar *parent, JsVarInt byteOffset, JsVar* value, bool littleEndian) {
+static void gen_jswrap_DataView_setUint8(JsVar *parent, JsVarInt byteOffset, JsVar* value, _Bool littleEndian) {
   jswrap_dataview_set(parent, ARRAYBUFFERVIEW_UINT8, byteOffset, value, littleEndian);
 }
-static void gen_jswrap_DataView_setUint16(JsVar *parent, JsVarInt byteOffset, JsVar* value, bool littleEndian) {
+static void gen_jswrap_DataView_setUint16(JsVar *parent, JsVarInt byteOffset, JsVar* value, _Bool littleEndian) {
   jswrap_dataview_set(parent, ARRAYBUFFERVIEW_UINT16, byteOffset, value, littleEndian);
 }
-static void gen_jswrap_DataView_setUint32(JsVar *parent, JsVarInt byteOffset, JsVar* value, bool littleEndian) {
+static void gen_jswrap_DataView_setUint32(JsVar *parent, JsVarInt byteOffset, JsVar* value, _Bool littleEndian) {
   jswrap_dataview_set(parent, ARRAYBUFFERVIEW_UINT32, byteOffset, value, littleEndian);
 }
 static JsVarFloat gen_jswrap_NaN() {
@@ -10450,34 +10443,34 @@ static JsVar* gen_jswrap_Object_getOwnPropertyNames(JsVar* object) {
   return jswrap_object_keys_or_property_names(object, JSWOKPF_INCLUDE_NON_ENUMERABLE);
 }
 static JsVar* gen_jswrap_Object_values(JsVar* object) {
-  return jswrap_object_values_or_entries(object, false);;
+  return jswrap_object_values_or_entries(object, 0);;
 }
 static JsVar* gen_jswrap_Object_entries(JsVar* object) {
-  return jswrap_object_values_or_entries(object, true);;
+  return jswrap_object_values_or_entries(object, 1);;
 }
 static int gen_jswrap_String_indexOf(JsVar *parent, JsVar* substring, JsVar* fromIndex) {
-  return jswrap_string_indexOf(parent, substring, fromIndex, false);
+  return jswrap_string_indexOf(parent, substring, fromIndex, 0);
 }
 static int gen_jswrap_String_lastIndexOf(JsVar *parent, JsVar* substring, JsVar* fromIndex) {
-  return jswrap_string_indexOf(parent, substring, fromIndex, true);
+  return jswrap_string_indexOf(parent, substring, fromIndex, 1);
 }
 static JsVar* gen_jswrap_String_toLowerCase(JsVar *parent) {
-  return jswrap_string_toUpperLowerCase(parent, false);
+  return jswrap_string_toUpperLowerCase(parent, 0);
 }
 static JsVar* gen_jswrap_String_toUpperCase(JsVar *parent) {
-  return jswrap_string_toUpperLowerCase(parent, true);
+  return jswrap_string_toUpperLowerCase(parent, 1);
 }
 static JsVar* gen_jswrap_String_removeAccents(JsVar *parent) {
   return jswrap_string_removeAccents(parent);
 }
-static bool gen_jswrap_String_includes(JsVar *parent, JsVar* substring, JsVar* fromIndex) {
-  return jswrap_string_indexOf(parent, substring, fromIndex, false)>=0;
+static _Bool gen_jswrap_String_includes(JsVar *parent, JsVar* substring, JsVar* fromIndex) {
+  return jswrap_string_indexOf(parent, substring, fromIndex, 0)>=0;
 }
 static JsVar* gen_jswrap_String_padStart(JsVar *parent, JsVarInt targetLength, JsVar* padString) {
-  return jswrap_string_padX(parent, targetLength, padString, true);
+  return jswrap_string_padX(parent, targetLength, padString, 1);
 }
 static JsVar* gen_jswrap_String_padEnd(JsVar *parent, JsVarInt targetLength, JsVar* padString) {
-  return jswrap_string_padX(parent, targetLength, padString, false);
+  return jswrap_string_padX(parent, targetLength, padString, 0);
 }
 static JsVarFloat gen_jswrap_Math_E() {
   return 2.718281828459045;
@@ -10516,10 +10509,10 @@ static JsVarFloat gen_jswrap_Math_tan(JsVarFloat theta) {
   return jswrap_math_sin(theta) / jswrap_math_sin(theta+((3.141592653589793)/2));
 }
 static JsVarFloat gen_jswrap_Math_min(JsVar* args) {
-  return jswrap_math_minmax(args, false);
+  return jswrap_math_minmax(args, 0);
 }
 static JsVarFloat gen_jswrap_Math_max(JsVar* args) {
-  return jswrap_math_minmax(args, true);
+  return jswrap_math_minmax(args, 1);
 }
 static JsVar* gen_jswrap_Eadk_Eadk() {
   return NULL;
@@ -10566,13 +10559,23 @@ JsVar *jswBinarySearch(const JswSymList *symbolsPtr, JsVar *parent, const char *
   return 0;
 }
 static const JswSymPtr jswSymbols_Eadk[] = {
-  { 0, JSWAT_INT32, (void*)jswrap_backlight_brightness},
-  { 21, JSWAT_INT32 | JSWAT_EXECUTE_IMMEDIATELY, (void*)jswrap_color_black},
-  { 33, JSWAT_INT32 | JSWAT_EXECUTE_IMMEDIATELY, (void*)jswrap_color_blue},
-  { 44, JSWAT_INT32 | JSWAT_EXECUTE_IMMEDIATELY, (void*)jswrap_color_green},
-  { 56, JSWAT_INT32 | JSWAT_EXECUTE_IMMEDIATELY, (void*)jswrap_color_red},
-  { 66, JSWAT_INT32 | JSWAT_EXECUTE_IMMEDIATELY, (void*)jswrap_color_white},
-  { 78, JSWAT_VOID | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_set_backlight_brightness}
+  { 0, JSWAT_INT32 | JSWAT_EXECUTE_IMMEDIATELY, (void*)jswrap_SCREEN_HEIGHT},
+  { 14, JSWAT_INT32 | JSWAT_EXECUTE_IMMEDIATELY, (void*)jswrap_SCREEN_WIDTH},
+  { 27, JSWAT_INT32, (void*)jswrap_backlight_brightness},
+  { 48, JSWAT_VOID | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_backlight_set_brightness},
+  { 73, JSWAT_BOOL, (void*)jswrap_battery_is_charging},
+  { 93, JSWAT_INT32, (void*)jswrap_battery_level},
+  { 107, JSWAT_JSVARFLOAT, (void*)jswrap_battery_voltage},
+  { 123, JSWAT_INT32 | JSWAT_EXECUTE_IMMEDIATELY, (void*)jswrap_color_black},
+  { 135, JSWAT_INT32 | JSWAT_EXECUTE_IMMEDIATELY, (void*)jswrap_color_blue},
+  { 146, JSWAT_INT32 | JSWAT_EXECUTE_IMMEDIATELY, (void*)jswrap_color_green},
+  { 158, JSWAT_INT32 | JSWAT_EXECUTE_IMMEDIATELY, (void*)jswrap_color_red},
+  { 168, JSWAT_INT32 | JSWAT_EXECUTE_IMMEDIATELY, (void*)jswrap_color_white},
+  { 180, JSWAT_INT32, (void*)jswrap_random},
+  { 187, JSWAT_INT32, (void*)jswrap_timing_millis},
+  { 201, JSWAT_VOID | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_timing_msleep},
+  { 215, JSWAT_VOID | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_timing_usleep},
+  { 229, JSWAT_BOOL, (void*)jswrap_usb_is_plugged}
 };
 static const unsigned char jswSymbolIndex_Eadk = 0;
 static const JswSymPtr jswSymbols_global[] = {
@@ -10894,7 +10897,7 @@ static const JswSymPtr jswSymbols_heatshrink[] = {
   { 9, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_heatshrink_decompress}
 };
 static const unsigned char jswSymbolIndex_heatshrink = 26;
-static const char jswSymbols_Eadk_str[] = "backlight_brightness\0color_black\0color_blue\0color_green\0color_red\0color_white\0set_backlight_brightness\0";
+static const char jswSymbols_Eadk_str[] = "SCREEN_HEIGHT\0SCREEN_WIDTH\0backlight_brightness\0backlight_set_brightness\0battery_is_charging\0battery_level\0battery_voltage\0color_black\0color_blue\0color_green\0color_red\0color_white\0random\0timing_millis\0timing_msleep\0timing_usleep\0usb_is_plugged\0";
 static const char jswSymbols_global_str[] = "Array\0ArrayBuffer\0ArrayBufferView\0Boolean\0DataView\0Date\0Eadk\0Error\0Float32Array\0Float64Array\0Function\0HIGH\0Infinity\0Int16Array\0Int32Array\0Int8Array\0InternalError\0JSON\0LOW\0Math\0Modules\0NaN\0Number\0Object\0ReferenceError\0RegExp\0String\0SyntaxError\0TypeError\0Uint16Array\0Uint24Array\0Uint32Array\0Uint8Array\0Uint8ClampedArray\0arguments\0atob\0btoa\0console\0decodeURIComponent\0encodeURIComponent\0eval\0global\0globalThis\0isFinite\0isNaN\0parseFloat\0parseInt\0print\0require\0trace\0";
 static const char jswSymbols_Array_proto_str[] = "concat\0every\0fill\0filter\0find\0findIndex\0forEach\0includes\0indexOf\0join\0length\0map\0pop\0push\0reduce\0reverse\0shift\0slice\0some\0sort\0splice\0toString\0unshift\0";
 static const char jswSymbols_Array_str[] = "isArray\0";
@@ -10922,7 +10925,7 @@ static const char jswSymbols_Modules_str[] = "addCached\0getCached\0removeAllCac
 static const char jswSymbols_Math_str[] = "E\0LN10\0LN2\0LOG10E\0LOG2E\0PI\0SQRT1_2\0SQRT2\0abs\0acos\0asin\0atan\0atan2\0ceil\0clip\0cos\0exp\0floor\0log\0max\0min\0pow\0randInt\0random\0round\0sign\0sin\0sqrt\0tan\0wrap\0";
 static const char jswSymbols_heatshrink_str[] = "compress\0decompress\0";
 const JswSymList jswSymbolTables[] = {
-  {jswSymbols_Eadk, jswSymbols_Eadk_str, 7},
+  {jswSymbols_Eadk, jswSymbols_Eadk_str, 17},
   {jswSymbols_global, jswSymbols_global_str, 50},
   {jswSymbols_Array_proto, jswSymbols_Array_proto_str, 23},
   {jswSymbols_Array, jswSymbols_Array_str, 1},
@@ -11056,14 +11059,14 @@ const JswSymList *jswGetSymbolListForObjectProto(JsVar *parent) {
   if (jsvIsString(parent)) return &jswSymbolTables[jswSymbolIndex_String_proto];
   return &jswSymbolTables[jswSymbolIndex_Object_proto];
 }
-bool jswIsBuiltInObject(const char *name) {
+_Bool jswIsBuiltInObject(const char *name) {
   const char *objNames = "Eadk\0Array\0ArrayBuffer\0ArrayBufferView\0Uint8Array\0Uint8ClampedArray\0Int8Array\0Uint16Array\0Int16Array\0Uint24Array\0Uint32Array\0Int32Array\0Float32Array\0Float64Array\0DataView\0Date\0Error\0SyntaxError\0TypeError\0InternalError\0ReferenceError\0Function\0console\0JSON\0Number\0Object\0Boolean\0RegExp\0String\0Modules\0Math\0";
   const char *s = objNames;
   while (*s) {
-    if (strcmp(s, name)==0) return true;
+    if (strcmp(s, name)==0) return 1;
     s+=strlen(s)+1;
   }
-  return false;
+  return 0;
 }
 void *jswGetBuiltInLibrary(const char *name) {
   if (strcmp(name, "heatshrink")==0) return (void*)gen_jswrap_heatshrink_heatshrink;
@@ -11103,8 +11106,8 @@ const char *jswGetBasicObjectPrototypeName(const char *objectName) {
   if (!strcmp(objectName, "Float64Array")) return "ArrayBufferView";
   return strcmp(objectName,"Object") ? "Object" : 0;
 }
-bool jswIdle() {
-  bool wasBusy = false;
+_Bool jswIdle() {
+  _Bool wasBusy = 0;
   return wasBusy;
 }
 void jswHWInit() {
@@ -11115,10 +11118,10 @@ void jswKill() {
 }
 void jswGetPowerUsage(JsVar *devices) {
 }
-bool jswOnCharEvent(IOEventFlags channel, char charData) {
+_Bool jswOnCharEvent(IOEventFlags channel, char charData) {
   ( (void)(channel) );
   ( (void)(charData) );
-  return false;
+  return 0;
 }
 void jswOnCustomEvent(IOEventFlags eventFlags, uint8_t *data, int dataLen) {
   ( (void)(eventFlags) );
@@ -11156,7 +11159,7 @@ JsVar *jswCallFunctionHack(void *function, JsnArgumentType argumentSpecifier, Js
     }
     case JSWAT_VOID | JSWAT_THIS_ARG | (JSWAT_BOOL << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)): {
       JsVar *result = 0;
-      ((void(*)(JsVar*,bool))function)(thisParam,jsvGetBool((paramCount>0)?paramData[0]:0));
+      ((void(*)(JsVar*,_Bool))function)(thisParam,jsvGetBool((paramCount>0)?paramData[0]:0));
       return result;
     }
     case JSWAT_JSVAR | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)): {
@@ -11174,6 +11177,11 @@ JsVar *jswCallFunctionHack(void *function, JsnArgumentType argumentSpecifier, Js
       result = jsvNewFromInteger(((JsVarInt(*)(JsVarInt,JsVarInt))function)(jsvGetInteger((paramCount>0)?paramData[0]:0),jsvGetInteger((paramCount>1)?paramData[1]:0)));
       return result;
     }
+    case JSWAT_INT32 | JSWAT_EXECUTE_IMMEDIATELY: {
+      JsVar *result = 0;
+      result = jsvNewFromInteger(((JsVarInt(*)())function)());
+      return result;
+    }
     case JSWAT_INT32: {
       JsVar *result = 0;
       result = jsvNewFromInteger(((JsVarInt(*)())function)());
@@ -11184,9 +11192,14 @@ JsVar *jswCallFunctionHack(void *function, JsnArgumentType argumentSpecifier, Js
       ((void(*)(JsVarInt))function)(jsvGetInteger((paramCount>0)?paramData[0]:0));
       return result;
     }
-    case JSWAT_INT32 | JSWAT_EXECUTE_IMMEDIATELY: {
+    case JSWAT_BOOL: {
       JsVar *result = 0;
-      result = jsvNewFromInteger(((JsVarInt(*)())function)());
+      result = jsvNewFromBool(((_Bool(*)())function)());
+      return result;
+    }
+    case JSWAT_JSVARFLOAT: {
+      JsVar *result = 0;
+      result = jsvNewFromFloat(((JsVarFloat(*)())function)());
       return result;
     }
     case JSWAT_JSVAR | (JSWAT_ARGUMENT_ARRAY << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)): {
@@ -11213,7 +11226,7 @@ JsVar *jswCallFunctionHack(void *function, JsnArgumentType argumentSpecifier, Js
     }
     case JSWAT_BOOL | JSWAT_THIS_ARG | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)): {
       JsVar *result = 0;
-      result = jsvNewFromBool(((bool(*)(JsVar*,JsVar*,JsVarInt))function)(thisParam,((paramCount>0)?paramData[0]:0),jsvGetInteger((paramCount>1)?paramData[1]:0)));
+      result = jsvNewFromBool(((_Bool(*)(JsVar*,JsVar*,JsVarInt))function)(thisParam,((paramCount>0)?paramData[0]:0),jsvGetInteger((paramCount>1)?paramData[1]:0)));
       return result;
     }
     case JSWAT_INT32 | JSWAT_THIS_ARG | (JSWAT_ARGUMENT_ARRAY << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)): {
@@ -11247,7 +11260,7 @@ JsVar *jswCallFunctionHack(void *function, JsnArgumentType argumentSpecifier, Js
     }
     case JSWAT_BOOL | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)): {
       JsVar *result = 0;
-      result = jsvNewFromBool(((bool(*)(JsVar*))function)(((paramCount>0)?paramData[0]:0)));
+      result = jsvNewFromBool(((_Bool(*)(JsVar*))function)(((paramCount>0)?paramData[0]:0)));
       return result;
     }
     case JSWAT_JSVAR | JSWAT_THIS_ARG | (JSWAT_ARGUMENT_ARRAY << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)): {
@@ -11284,17 +11297,12 @@ JsVar *jswCallFunctionHack(void *function, JsnArgumentType argumentSpecifier, Js
     }
     case JSWAT_JSVAR | JSWAT_THIS_ARG | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_BOOL << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)): {
       JsVar *result = 0;
-      result = (((JsVar*(*)(JsVar*,JsVarInt,bool))function)(thisParam,jsvGetInteger((paramCount>0)?paramData[0]:0),jsvGetBool((paramCount>1)?paramData[1]:0)));
+      result = (((JsVar*(*)(JsVar*,JsVarInt,_Bool))function)(thisParam,jsvGetInteger((paramCount>0)?paramData[0]:0),jsvGetBool((paramCount>1)?paramData[1]:0)));
       return result;
     }
     case JSWAT_VOID | JSWAT_THIS_ARG | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)) | (JSWAT_BOOL << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*3)): {
       JsVar *result = 0;
-      ((void(*)(JsVar*,JsVarInt,JsVar*,bool))function)(thisParam,jsvGetInteger((paramCount>0)?paramData[0]:0),((paramCount>1)?paramData[1]:0),jsvGetBool((paramCount>2)?paramData[2]:0));
-      return result;
-    }
-    case JSWAT_JSVARFLOAT: {
-      JsVar *result = 0;
-      result = jsvNewFromFloat(((JsVarFloat(*)())function)());
+      ((void(*)(JsVar*,JsVarInt,JsVar*,_Bool))function)(thisParam,jsvGetInteger((paramCount>0)?paramData[0]:0),((paramCount>1)?paramData[1]:0),jsvGetBool((paramCount>2)?paramData[2]:0));
       return result;
     }
     case JSWAT_INT32 | JSWAT_THIS_ARG: {
@@ -11381,7 +11389,7 @@ JsVar *jswCallFunctionHack(void *function, JsnArgumentType argumentSpecifier, Js
     }
     case JSWAT_BOOL | JSWAT_THIS_ARG | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)): {
       JsVar *result = 0;
-      result = jsvNewFromBool(((bool(*)(JsVar*,JsVar*))function)(thisParam,((paramCount>0)?paramData[0]:0)));
+      result = jsvNewFromBool(((_Bool(*)(JsVar*,JsVar*))function)(thisParam,((paramCount>0)?paramData[0]:0)));
       return result;
     }
     case JSWAT_JSVAR | JSWAT_THIS_ARG | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_ARGUMENT_ARRAY << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)): {
@@ -11398,7 +11406,7 @@ JsVar *jswCallFunctionHack(void *function, JsnArgumentType argumentSpecifier, Js
     }
     case JSWAT_BOOL | JSWAT_THIS_ARG | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)) | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*2)): {
       JsVar *result = 0;
-      result = jsvNewFromBool(((bool(*)(JsVar*,JsVar*,JsVar*))function)(thisParam,((paramCount>0)?paramData[0]:0),((paramCount>1)?paramData[1]:0)));
+      result = jsvNewFromBool(((_Bool(*)(JsVar*,JsVar*,JsVar*))function)(thisParam,((paramCount>0)?paramData[0]:0),((paramCount>1)?paramData[1]:0)));
       return result;
     }
     case JSWAT_JSVAR: {
@@ -11634,7 +11642,7 @@ static HSE_state st_step_search(heatshrink_encoder *hse) {
     uint16_t lookahead_sz = get_lookahead_size(hse);
     uint16_t msi = hse->match_scan_index;
     ;
-    bool fin = is_finishing(hse);
+    _Bool fin = is_finishing(hse);
     if (msi > hse->input_size - (fin ? 1 : lookahead_sz)) {
         ;
         return fin ? HSES_FLUSH_BITS : HSES_SAVE_BACKLOG;
@@ -11823,7 +11831,7 @@ static void push_bits(heatshrink_encoder *hse, uint8_t count, uint8_t bits,
     } else {
         int i;
         for (i=count - 1; i>=0; i--) {
-            bool bit = bits & (1 << i);
+            _Bool bit = bits & (1 << i);
             if (bit) { hse->current_byte |= hse->bit_index; }
             if (0) {
                 ;
@@ -12193,7 +12201,7 @@ uint32_t heatshrink_encode_cb(int (*in_callback)(uint32_t *cbdata), uint32_t *in
           inBuf[inBufCount++] = (uint8_t)lastByte;
       }
     }
-    bool ok = heatshrink_encoder_sink(&hse, &inBuf[inBufOffset], inBufCount, &count) >= 0;
+    _Bool ok = heatshrink_encoder_sink(&hse, &inBuf[inBufOffset], inBufCount, &count) >= 0;
     do { } while(0);( (void)(ok) );
     inBufCount -= count;
     inBufOffset += count;
@@ -12236,7 +12244,7 @@ uint32_t heatshrink_decode_cb(int (*in_callback)(uint32_t *cbdata), uint32_t *in
           inBuf[inBufCount++] = (uint8_t)lastByte;
       }
     }
-    bool ok = heatshrink_decoder_sink(&hsd, &inBuf[inBufOffset], inBufCount, &count) >= 0;
+    _Bool ok = heatshrink_decoder_sink(&hsd, &inBuf[inBufOffset], inBufCount, &count) >= 0;
     do { } while(0);( (void)(ok) );
     inBufCount -= count;
     inBufOffset += count;
@@ -12272,7 +12280,7 @@ uint32_t heatshrink_decode(int (*in_callback)(uint32_t *cbdata), uint32_t *in_cb
 struct ejs *activeEJS = NULL;
 void jshInterruptOn() {}
 void jshInterruptOff() {}
-bool jshIsInInterrupt() { return false; }
+_Bool jshIsInInterrupt() { return 0; }
 void jsiConsolePrintf(const char *fmt, ...) {
   va_list argp;
   va_start(argp, fmt);
@@ -12282,7 +12290,7 @@ void jsiConsolePrintf(const char *fmt, ...) {
 void jsiConsolePrintStringVar(JsVar *v) {
   jsiConsolePrintf("%v", v);
 }
-bool jsiFreeMoreMemory() { return false; }
+_Bool jsiFreeMoreMemory() { return 0; }
 void jshKickWatchDog() { }
 void jsiConsoleRemoveInputLine() {}
 JsSysTime jshGetTimeFromMilliseconds(JsVarFloat ms) {
@@ -12333,7 +12341,7 @@ void ejs_clear_exception() {
     activeEJS->exception = NULL;
   }
 }
-bool ejs_create(unsigned int varCount) {
+_Bool ejs_create(unsigned int varCount) {
   jsVars = NULL;
   jswHWInit();
   jsvInit(varCount);
@@ -12375,7 +12383,7 @@ JsVar *ejs_catch_exception() {
   }
   return exception;
 }
-JsVar *ejs_exec(struct ejs *ejs, const char *src, bool stringIsStatic) {
+JsVar *ejs_exec(struct ejs *ejs, const char *src, _Bool stringIsStatic) {
   ejs_set_instance(ejs);
   ejs_clear_exception();
   JsVar *v = jspEvaluate(src, stringIsStatic);
@@ -12426,24 +12434,23 @@ const JshPinInfo pinInfo[33] = {
            { JSH_PORTD, JSH_PIN0+31, JSH_ANALOG_NONE, { } },
            { JSH_PORTD, JSH_PIN0+32, JSH_ANALOG_NONE, { } },
 };
-int jswrap_backlight_brightness(void);
-void jswrap_set_backlight_brightness(int brightness);
 int jswrap_color_black(void);
 int jswrap_color_white(void);
 int jswrap_color_red(void);
 int jswrap_color_green(void);
 int jswrap_color_blue(void);
-int
-jswrap_backlight_brightness(void) {
-    jsiConsolePrintString("Call to jswrap_backlight_brightness()!\r\n");
-    int result = (int) eadk_backlight_brightness();
-    jsiConsolePrintf("Got backlight brightness = %i\r\n", result);
-    return result;
-}
-void jswrap_set_backlight_brightness(int brightness) {
-    jsiConsolePrintString("Call to jswrap_set_backlight_brightness()!\r\n");
-    eadk_backlight_set_brightness(brightness);
-}
+int jswrap_SCREEN_WIDTH(void);
+int jswrap_SCREEN_HEIGHT(void);
+int jswrap_backlight_brightness(void);
+void jswrap_backlight_set_brightness(int brightness);
+_Bool jswrap_battery_is_charging();
+uint8_t jswrap_battery_level();
+float jswrap_battery_voltage();
+void jswrap_timing_usleep(uint32_t us);
+void jswrap_timing_msleep(uint32_t ms);
+uint64_t jswrap_timing_millis();
+_Bool jswrap_usb_is_plugged();
+uint32_t jswrap_random();
 int jswrap_color_black(void) {
     return 0x0;
 }
@@ -12459,6 +12466,43 @@ int jswrap_color_green(void) {
 int jswrap_color_blue(void) {
     return 0x001F;
 }
+int jswrap_SCREEN_WIDTH(void) {
+    return 320;
+}
+int jswrap_SCREEN_HEIGHT(void) {
+    return 240;
+}
+int jswrap_backlight_brightness(void) {
+    int result = (int) eadk_backlight_brightness();
+    return result;
+}
+void jswrap_backlight_set_brightness(int brightness) {
+    eadk_backlight_set_brightness(brightness);
+}
+_Bool jswrap_battery_is_charging(void) {
+    return 0;
+}
+uint8_t jswrap_battery_level(void) {
+    return 0;
+}
+float jswrap_battery_voltage(void) {
+    return 0.0f;
+}
+void jswrap_timing_usleep(uint32_t us) {
+    return eadk_timing_usleep(us);
+}
+void jswrap_timing_msleep(uint32_t ms) {
+    return eadk_timing_msleep(ms);
+}
+uint64_t jswrap_timing_millis() {
+    return eadk_timing_millis();
+}
+_Bool jswrap_usb_is_plugged() {
+    return 0;
+}
+uint32_t jswrap_random() {
+    return eadk_random();
+}
 JsVar *jswrap_array_constructor(JsVar *args) {
   do { } while(0);
   if (jsvGetArrayLength(args)==1) {
@@ -12473,7 +12517,7 @@ JsVar *jswrap_array_constructor(JsVar *args) {
       } else {
         JsVar *arr = jsvNewEmptyArray();
         if (!arr) return 0;
-        jsvSetArrayLength(arr, count, false);
+        jsvSetArrayLength(arr, count, 0);
         return arr;
       }
     } else {
@@ -12483,14 +12527,14 @@ JsVar *jswrap_array_constructor(JsVar *args) {
   return jsvLockAgain(args);
 }
 JsVar *jswrap_array_indexOf(JsVar *parent, JsVar *value, JsVarInt startIdx) {
-  JsVar *idxName = jsvGetIndexOfFull(parent, value, false , true , startIdx);
+  JsVar *idxName = jsvGetIndexOfFull(parent, value, 0 , 1 , startIdx);
   if (idxName == 0) return jsvNewFromInteger(-1);
   return jsvNewFromInteger(jsvGetIntegerAndUnLock(idxName));
 }
-bool jswrap_array_includes(JsVar *arr, JsVar *value, JsVarInt startIdx) {
+_Bool jswrap_array_includes(JsVar *arr, JsVar *value, JsVarInt startIdx) {
   if (startIdx<0) startIdx+=jsvGetLength(arr);
   if (startIdx<0) startIdx=0;
-  bool isNaN = jsvIsFloat(value) && isnan(jsvGetFloat(value));
+  _Bool isNaN = jsvIsFloat(value) && isnan(jsvGetFloat(value));
   if (!jsvIsIterable(arr)) return 0;
   JsvIterator it;
   jsvIteratorNew(&it, arr, jsvIsUndefined(value) ? JSIF_EVERY_ARRAY_ELEMENT : JSIF_DEFINED_ARRAY_ElEMENTS);
@@ -12503,7 +12547,7 @@ bool jswrap_array_includes(JsVar *arr, JsVar *value, JsVarInt startIdx) {
           (isNaN && jsvIsFloat(childValue) && isnan(jsvGetFloat(childValue)))) {
         jsvUnLock2(childIndex,childValue);
         jsvIteratorFree(&it);
-        return true;
+        return 1;
       }
       jsvUnLock(childValue);
     }
@@ -12511,7 +12555,7 @@ bool jswrap_array_includes(JsVar *arr, JsVar *value, JsVarInt startIdx) {
     jsvIteratorNext(&it);
   }
   jsvIteratorFree(&it);
-  return false;
+  return 0;
 }
 JsVar *jswrap_array_join(JsVar *parent, JsVar *filler) {
   if (!jsvIsIterable(parent)) return 0;
@@ -12520,7 +12564,7 @@ JsVar *jswrap_array_join(JsVar *parent, JsVar *filler) {
   else
     filler = jsvAsString(filler);
   if (!filler) return 0;
-  JsVar *str = jsvArrayJoin(parent, filler, true );
+  JsVar *str = jsvArrayJoin(parent, filler, 1 );
   jsvUnLock(filler);
   return str;
 }
@@ -12551,8 +12595,8 @@ static JsVar *_jswrap_array_iterate_with_callback(
     JsVar *funcVar,
     JsVar *thisVar,
     AIWCReturnType returnType,
-    bool isBoolCallback,
-    bool expectedValue
+    _Bool isBoolCallback,
+    _Bool expectedValue
     ) {
   if (!jsvIsIterable(parent)) {
     jsExceptionHere(JSET_ERROR, "Must be called on something iterable");
@@ -12569,7 +12613,7 @@ static JsVar *_jswrap_array_iterate_with_callback(
   JsVar *result = 0;
   if (returnType == RETURN_ARRAY)
     result = jsvNewEmptyArray();
-  bool isDone = false;
+  _Bool isDone = 0;
   if (result || returnType!=RETURN_ARRAY) {
     JsvIterator it;
     jsvIteratorNew(&it, parent, JSIF_DEFINED_ARRAY_ElEMENTS);
@@ -12583,10 +12627,10 @@ static JsVar *_jswrap_array_iterate_with_callback(
         args[1] = jsvNewFromInteger(idxValue);
         args[2] = parent;
         jsvIteratorNext(&it);
-        cb_result = jspeFunctionCall(funcVar, 0, thisVar, false, 3, args);
+        cb_result = jspeFunctionCall(funcVar, 0, thisVar, 0, 3, args);
         jsvUnLock(args[1]);
         if (cb_result) {
-          bool matched;
+          _Bool matched;
           if (isBoolCallback)
             matched = (jsvGetBool(cb_result) == expectedValue);
           if (returnType == RETURN_ARRAY) {
@@ -12609,10 +12653,10 @@ static JsVar *_jswrap_array_iterate_with_callback(
                 result = (returnType == RETURN_ARRAY_ELEMENT) ?
                     jsvLockAgain(value) :
                     jsvNewFromInteger(jsvGetInteger(index));
-                isDone = true;
+                isDone = 1;
               }
             } else if (!matched)
-              isDone = true;
+              isDone = 1;
           }
           jsvUnLock(cb_result);
         }
@@ -12630,27 +12674,27 @@ static JsVar *_jswrap_array_iterate_with_callback(
   return result;
 }
 JsVar *jswrap_array_map(JsVar *parent, JsVar *funcVar, JsVar *thisVar) {
-  return _jswrap_array_iterate_with_callback(parent, funcVar, thisVar, RETURN_ARRAY, false, false);
+  return _jswrap_array_iterate_with_callback(parent, funcVar, thisVar, RETURN_ARRAY, 0, 0);
 }
 void jswrap_array_forEach(JsVar *parent, JsVar *funcVar, JsVar *thisVar) {
-  _jswrap_array_iterate_with_callback(parent, funcVar, thisVar, RETURN_BOOL, false, false);
+  _jswrap_array_iterate_with_callback(parent, funcVar, thisVar, RETURN_BOOL, 0, 0);
 }
 JsVar *jswrap_array_filter(JsVar *parent, JsVar *funcVar, JsVar *thisVar) {
-  return _jswrap_array_iterate_with_callback(parent, funcVar, thisVar, RETURN_ARRAY, true, true);
+  return _jswrap_array_iterate_with_callback(parent, funcVar, thisVar, RETURN_ARRAY, 1, 1);
 }
 JsVar *jswrap_array_find(JsVar *parent, JsVar *funcVar) {
-  return _jswrap_array_iterate_with_callback(parent, funcVar, 0, RETURN_ARRAY_ELEMENT, true, true);
+  return _jswrap_array_iterate_with_callback(parent, funcVar, 0, RETURN_ARRAY_ELEMENT, 1, 1);
 }
 JsVar *jswrap_array_findIndex(JsVar *parent, JsVar *funcVar) {
-  JsVar *v = _jswrap_array_iterate_with_callback(parent, funcVar, 0, RETURN_ARRAY_INDEX, true, true);
+  JsVar *v = _jswrap_array_iterate_with_callback(parent, funcVar, 0, RETURN_ARRAY_INDEX, 1, 1);
   if (v) return v;
   return jsvNewFromInteger(-1);
 }
 JsVar *jswrap_array_some(JsVar *parent, JsVar *funcVar, JsVar *thisVar) {
-  return _jswrap_array_iterate_with_callback(parent, funcVar, thisVar, RETURN_BOOL, true, false);
+  return _jswrap_array_iterate_with_callback(parent, funcVar, thisVar, RETURN_BOOL, 1, 0);
 }
 JsVar *jswrap_array_every(JsVar *parent, JsVar *funcVar, JsVar *thisVar) {
-  return _jswrap_array_iterate_with_callback(parent, funcVar, thisVar, RETURN_BOOL, true, true);
+  return _jswrap_array_iterate_with_callback(parent, funcVar, thisVar, RETURN_BOOL, 1, 1);
 }
 JsVar *jswrap_array_reduce(JsVar *parent, JsVar *funcVar, JsVar *initialValue) {
   if (!jsvIsIterable(parent)) {
@@ -12665,12 +12709,12 @@ JsVar *jswrap_array_reduce(JsVar *parent, JsVar *funcVar, JsVar *initialValue) {
   JsvIterator it;
   jsvIteratorNew(&it, parent, JSIF_DEFINED_ARRAY_ElEMENTS);
   if (!previousValue) {
-    bool isDone = false;
+    _Bool isDone = 0;
     while (!isDone && jsvIteratorHasElement(&it)) {
       JsVar *index = jsvIteratorGetKey(&it);
       if (jsvIsInt(index)) {
         previousValue = jsvIteratorGetValue(&it);
-        isDone = true;
+        isDone = 1;
       }
       jsvUnLock(index);
       jsvIteratorNext(&it);
@@ -12688,7 +12732,7 @@ JsVar *jswrap_array_reduce(JsVar *parent, JsVar *funcVar, JsVar *initialValue) {
       args[1] = jsvIteratorGetValue(&it);
       args[2] = jsvNewFromInteger(idxValue);
       args[3] = parent;
-      previousValue = jspeFunctionCall(funcVar, 0, 0, false, 4, args);
+      previousValue = jspeFunctionCall(funcVar, 0, 0, 0, 4, args);
       jsvUnLockMany(3,args);
     }
     jsvUnLock(index);
@@ -12708,12 +12752,12 @@ JsVar *jswrap_array_splice(JsVar *parent, JsVarInt index, JsVar *howManyVar, JsV
   if (howMany > len-index) howMany = len-index;
   JsVarInt newItems = jsvGetArrayLength(elements);
   JsVarInt shift = newItems-howMany;
-  bool needToAdd = false;
+  _Bool needToAdd = 0;
   JsVar *result = jsvNewEmptyArray();
   JsvObjectIterator it;
   jsvObjectIteratorNew(&it, parent);
   while (jsvObjectIteratorHasValue(&it) && !needToAdd) {
-    bool goToNext = true;
+    _Bool goToNext = 1;
     JsVar *idxVar = jsvObjectIteratorGetKey(&it);
     if (idxVar && jsvIsInt(idxVar)) {
       JsVarInt idx = jsvGetInteger(idxVar);
@@ -12723,13 +12767,13 @@ JsVar *jswrap_array_splice(JsVar *parent, JsVarInt index, JsVar *howManyVar, JsV
           JsVar *el = jsvObjectIteratorGetValue(&it);
           jsvArrayPushAndUnLock(result, el);
         }
-        goToNext = false;
+        goToNext = 0;
         JsVar *toRemove = jsvObjectIteratorGetKey(&it);
         jsvObjectIteratorNext(&it);
         jsvRemoveChildAndUnLock(parent, toRemove);
       } else {
-        needToAdd = true;
-        goToNext = false;
+        needToAdd = 1;
+        goToNext = 0;
       }
     }
     jsvUnLock(idxVar);
@@ -12755,7 +12799,7 @@ JsVar *jswrap_array_splice(JsVar *parent, JsVarInt index, JsVar *howManyVar, JsV
     jsvObjectIteratorNext(&it);
   }
   jsvObjectIteratorFree(&it);
-  jsvSetArrayLength(parent, len + shift, false);
+  jsvSetArrayLength(parent, len + shift, 0);
   return result;
 }
 JsVar *jswrap_array_splice_i(JsVar *parent, JsVarInt index, JsVarInt howMany, JsVar *elements) {
@@ -12789,7 +12833,7 @@ JsVar *jswrap_array_slice(JsVar *parent, JsVarInt start, JsVar *endVar) {
   else k = (((start)<(len))?(start):(len));
   if (end<0) final = ((((len + end))>(0))?((len + end)):(0));
   else final = (((end)<(len))?(end):(len));
-  bool isDone = false;
+  _Bool isDone = 0;
   JsvIterator it;
   jsvIteratorNew(&it, parent, JSIF_EVERY_ARRAY_ELEMENT);
   while (jsvIteratorHasElement(&it) && !isDone) {
@@ -12802,7 +12846,7 @@ JsVar *jswrap_array_slice(JsVar *parent, JsVarInt start, JsVar *endVar) {
         jsvIteratorNext(&it);
         k++;
       } else {
-        isDone = true;
+        isDone = 1;
       }
     }
   }
@@ -12816,13 +12860,13 @@ __attribute__ ((noinline)) static JsVarInt _jswrap_array_sort_compare(JsVar *a, 
     return -1;
   } else if (compareFn) {
     JsVar *args[2] = {a,b};
-    JsVarFloat f = jsvGetFloatAndUnLock(jspeFunctionCall(compareFn, 0, 0, false, 2, args));
+    JsVarFloat f = jsvGetFloatAndUnLock(jspeFunctionCall(compareFn, 0, 0, 0, 2, args));
     if (f==0) return 0;
     return (f<0)?-1:1;
   } else {
     JsVar *sa = jsvAsString(a);
     JsVar *sb = jsvAsString(b);
-    JsVarInt r = jsvCompareString(sa,sb, 0, 0, false);
+    JsVarInt r = jsvCompareString(sa,sb, 0, 0, 0);
     jsvUnLock2(sa, sb);
     return r;
   }
@@ -12831,7 +12875,7 @@ __attribute__ ((noinline)) static void _jswrap_array_sort(JsvIterator *head, int
   if (n < 2) return;
   JsvIterator pivot;
   jsvIteratorClone(&pivot, head);
-  bool pivotLowest = true;
+  _Bool pivotLowest = 1;
   JsVar *pivotValue = jsvIteratorGetValue(&pivot);
   int nlo = 0, nhigh = 0;
   JsvIterator it;
@@ -12841,7 +12885,7 @@ __attribute__ ((noinline)) static void _jswrap_array_sort(JsvIterator *head, int
     JsVar *itValue = jsvIteratorGetValue(&it);
     JsVarInt cmp = _jswrap_array_sort_compare(itValue, pivotValue, compareFn);
     if (cmp<=0) {
-      if (cmp<0) pivotLowest = false;
+      if (cmp<0) pivotLowest = 0;
       nlo++;
       jsvIteratorSetValue(&pivot, itValue);
       jsvIteratorNext(&pivot);
@@ -12894,7 +12938,7 @@ JsVar *jswrap_array_concat(JsVar *parent, JsVar *args) {
   JsVar *source = jsvLockAgain(parent);
   do {
     if (jsvIsArray(source)) {
-      jsvArrayPushAll(result, source, false);
+      jsvArrayPushAll(result, source, 0);
     } else
       jsvArrayPush(result, source);
     jsvUnLock(source);
@@ -13011,7 +13055,7 @@ JsVar *jswrap_arraybuffer_constructor(JsVarInt byteLength) {
 }
 JsVar *jswrap_typedarray_constructor(JsVarDataArrayBufferViewType type, JsVar *arr, JsVarInt byteOffset, JsVarInt length) {
   JsVar *arrayBuffer = 0;
-  bool copyData = false;
+  _Bool copyData = 0;
   if (byteOffset < 0 || byteOffset > 65535) {
     jsExceptionHere(JSET_ERROR, "byteOffset too large (or negative)");
     return 0;
@@ -13026,7 +13070,7 @@ JsVar *jswrap_typedarray_constructor(JsVarDataArrayBufferViewType type, JsVar *a
     length = (JsVarInt)jsvGetLength(arr);
     byteOffset = 0;
     arrayBuffer = jswrap_arraybuffer_constructor((int)(size_t)((type)&ARRAYBUFFERVIEW_MASK_SIZE)*length);
-    copyData = true;
+    copyData = 1;
   }
   if (!arrayBuffer) {
     jsExceptionHere(JSET_ERROR, "Unsupported first argument of type %t", arr);
@@ -13069,7 +13113,7 @@ void jswrap_arraybufferview_set(JsVar *parent, JsVar *arr, int offset) {
   if (jsvIsArrayBuffer(parent) && jsvIsArrayBuffer(arr)) {
     JsVar *sa = jsvGetArrayBufferBackingString(parent, NULL);
     JsVar *sb = jsvGetArrayBufferBackingString(arr, NULL);
-    bool setBackwards = sa == sb && arr->varData.arraybuffer.byteOffset <=
+    _Bool setBackwards = sa == sb && arr->varData.arraybuffer.byteOffset <=
         parent->varData.arraybuffer.byteOffset + offset*(int)(size_t)((parent->varData.arraybuffer.type)&ARRAYBUFFERVIEW_MASK_SIZE);
     jsvUnLock2(sa,sb);
     if (setBackwards) {
@@ -13086,13 +13130,13 @@ void jswrap_arraybufferview_set(JsVar *parent, JsVar *arr, int offset) {
   jsvIteratorNew(&itsrc, arr, JSIF_EVERY_ARRAY_ELEMENT);
   JsvArrayBufferIterator itdst;
   jsvArrayBufferIteratorNew(&itdst, parent, (size_t)offset);
-  bool useInts = !(((itdst.type)&ARRAYBUFFERVIEW_FLOAT)!=0) || jsvIsString(arr);
+  _Bool useInts = !(((itdst.type)&ARRAYBUFFERVIEW_FLOAT)!=0) || jsvIsString(arr);
   while (jsvIteratorHasElement(&itsrc) && jsvArrayBufferIteratorHasElement(&itdst)) {
     if (useInts) {
       jsvArrayBufferIteratorSetIntegerValue(&itdst, jsvIteratorGetIntegerValue(&itsrc));
     } else {
       JsVar *value = jsvIteratorGetValue(&itsrc);
-      jsvArrayBufferIteratorSetValue(&itdst, value, false );
+      jsvArrayBufferIteratorSetValue(&itdst, value, 0 );
       jsvUnLock(value);
     }
     jsvArrayBufferIteratorNext(&itdst);
@@ -13129,10 +13173,10 @@ JsVar *jswrap_arraybufferview_map(JsVar *parent, JsVar *funcVar, JsVar *thisVar)
       args[0] = jsvIteratorGetValue(&it);
       args[1] = jsvNewFromInteger(idxValue);
       args[2] = parent;
-      mapped = jspeFunctionCall(funcVar, 0, thisVar, false, 3, args);
+      mapped = jspeFunctionCall(funcVar, 0, thisVar, 0, 3, args);
       jsvUnLockMany(2,args);
       if (mapped) {
-        jsvArrayBufferIteratorSetValue(&itdst, mapped, false );
+        jsvArrayBufferIteratorSetValue(&itdst, mapped, 0 );
         jsvUnLock(mapped);
       }
     }
@@ -13181,7 +13225,7 @@ static JsVarInt _jswrap_arraybufferview_sort_int(JsVarInt a, JsVarInt b) {
 }
 JsVar *jswrap_arraybufferview_sort(JsVar *array, JsVar *compareFn) {
   if (!jsvIsArrayBuffer(array)) return 0;
-  bool isFloat = (((array->varData.arraybuffer.type)&ARRAYBUFFERVIEW_FLOAT)!=0);
+  _Bool isFloat = (((array->varData.arraybuffer.type)&ARRAYBUFFERVIEW_FLOAT)!=0);
   if (compareFn)
     return jswrap_array_sort(array, compareFn);
   compareFn = isFloat ?
@@ -13210,7 +13254,7 @@ JsVar *jswrap_dataview_constructor(JsVar *buffer, int byteOffset, int byteLength
   }
   return dataview;
 }
-JsVar *jswrap_dataview_get(JsVar *dataview, JsVarDataArrayBufferViewType type, int byteOffset, bool littleEndian) {
+JsVar *jswrap_dataview_get(JsVar *dataview, JsVarDataArrayBufferViewType type, int byteOffset, _Bool littleEndian) {
   JsVar *buffer = jsvObjectGetChildIfExists(dataview, "buffer");
   if (!jsvIsArrayBuffer(buffer)) {
     jsvUnLock(buffer);
@@ -13228,7 +13272,7 @@ JsVar *jswrap_dataview_get(JsVar *dataview, JsVarDataArrayBufferViewType type, i
   jsvUnLock(arr);
   return value;
 }
-void jswrap_dataview_set(JsVar *dataview, JsVarDataArrayBufferViewType type, int byteOffset, JsVar *value, bool littleEndian) {
+void jswrap_dataview_set(JsVar *dataview, JsVarDataArrayBufferViewType type, int byteOffset, JsVar *value, _Bool littleEndian) {
   JsVar *buffer = jsvObjectGetChildIfExists(dataview, "buffer");
   if (!jsvIsArrayBuffer(buffer)) {
     jsvUnLock(buffer);
@@ -13287,7 +13331,7 @@ void getDateFromDayNumber(int day, int *y, int *m, int *date) {
       *y=b;
   }
 }
-JsVarFloat getDstChangeTime(int y, int dow_number, int dow, int month, int day_offset, int timeOfDay, bool is_start, int dst_offset, int timezone, bool as_local_time) {
+JsVarFloat getDstChangeTime(int y, int dow_number, int dow, int month, int day_offset, int timeOfDay, _Bool is_start, int dst_offset, int timezone, _Bool as_local_time) {
   int ans;
   if (dow_number == 4) {
     if (++month > 11) {
@@ -13308,7 +13352,7 @@ JsVarFloat getDstChangeTime(int y, int dow_number, int dow, int month, int day_o
   }
   return 60.0*ans;
 }
-int jsdGetEffectiveTimeZone(JsVarFloat ms, bool is_local_time, bool *is_dst) {
+int jsdGetEffectiveTimeZone(JsVarFloat ms, _Bool is_local_time, _Bool *is_dst) {
   JsVar *dst = jsvObjectGetChildIfExists(execInfo.hiddenRoot, "dst");
   if ((dst) && (jsvIsArrayBuffer(dst)) && (jsvGetLength(dst) == 12) && (dst->varData.arraybuffer.type == ARRAYBUFFERVIEW_INT16)) {
     int y;
@@ -13325,7 +13369,7 @@ int jsdGetEffectiveTimeZone(JsVarFloat ms, bool is_local_time, bool *is_dst) {
     if (dstSetting[0]) {
       JsVarFloat sec = ms/1000;
       JsVarFloat dstStart,dstEnd;
-      bool dstActive;
+      _Bool dstActive;
       getDateFromDayNumber((int)(sec/86400),&y,0,0);
       dstStart = getDstChangeTime(y, dstSetting[2], dstSetting[3], dstSetting[4], dstSetting[5], dstSetting[6], 1, dstSetting[0], dstSetting[1], is_local_time);
       dstEnd = getDstChangeTime(y, dstSetting[7], dstSetting[8], dstSetting[9], dstSetting[10], dstSetting[11], 0, dstSetting[0], dstSetting[1], is_local_time);
@@ -13340,19 +13384,19 @@ int jsdGetEffectiveTimeZone(JsVarFloat ms, bool is_local_time, bool *is_dst) {
   } else {
     jsvUnLock(dst);
   }
-  if (is_dst) *is_dst = false;
+  if (is_dst) *is_dst = 0;
   return jsvObjectGetIntegerChild(execInfo.hiddenRoot, "tz");
 }
 void setCorrectTimeZone(TimeInDay *td) {
   td->zone = 0;
-  td->zone = jsdGetEffectiveTimeZone(fromTimeInDay(td),true,&(td->is_dst));
+  td->zone = jsdGetEffectiveTimeZone(fromTimeInDay(td),1,&(td->is_dst));
 }
-TimeInDay getTimeFromMilliSeconds(JsVarFloat ms_in, bool forceGMT) {
+TimeInDay getTimeFromMilliSeconds(JsVarFloat ms_in, _Bool forceGMT) {
   TimeInDay t;
-  t.zone = forceGMT ? 0 : jsdGetEffectiveTimeZone(ms_in, false, &(t.is_dst));
+  t.zone = forceGMT ? 0 : jsdGetEffectiveTimeZone(ms_in, 0, &(t.is_dst));
   ms_in += t.zone*60000;
   t.daysSinceEpoch = (int)(ms_in / MSDAY);
-  if (forceGMT) t.is_dst = false;
+  if (forceGMT) t.is_dst = 0;
   int ms = (int)(ms_in - ((JsVarFloat)t.daysSinceEpoch * MSDAY));
   if (ms<0) {
     ms += MSDAY;
@@ -13404,10 +13448,10 @@ static int getDay(const char *s) {
       return i;
   return -1;
 }
-static TimeInDay getTimeFromDateVar(JsVar *date, bool forceGMT) {
+static TimeInDay getTimeFromDateVar(JsVar *date, _Bool forceGMT) {
   return getTimeFromMilliSeconds(jswrap_date_getTime(date), forceGMT);
 }
-static CalendarDate getCalendarDateFromDateVar(JsVar *date, bool forceGMT) {
+static CalendarDate getCalendarDateFromDateVar(JsVar *date, _Bool forceGMT) {
   return getCalendarDate(getTimeFromDateVar(date, forceGMT).daysSinceEpoch);
 }
 JsVarFloat jswrap_date_now() {
@@ -13448,10 +13492,10 @@ JsVar *jswrap_date_constructor(JsVar *args) {
   return jswrap_date_from_milliseconds(time);
 }
 int jswrap_date_getTimezoneOffset(JsVar *parent) {
-  return -getTimeFromDateVar(parent, false ).zone;
+  return -getTimeFromDateVar(parent, 0 ).zone;
 }
 int jswrap_date_getIsDST(JsVar *parent) {
-  return getTimeFromDateVar(parent, false ).is_dst ? 1 : 0;
+  return getTimeFromDateVar(parent, 0 ).is_dst ? 1 : 0;
 }
 JsVarFloat jswrap_date_getTime(JsVar *date) {
   return jsvObjectGetFloatChild(date, "ms");
@@ -13466,31 +13510,31 @@ JsVarFloat jswrap_date_setTime(JsVar *date, JsVarFloat timeValue) {
   return timeValue;
 }
 int jswrap_date_getHours(JsVar *parent) {
-  return getTimeFromDateVar(parent, false ).hour;
+  return getTimeFromDateVar(parent, 0 ).hour;
 }
 int jswrap_date_getMinutes(JsVar *parent) {
-  return getTimeFromDateVar(parent, false ).min;
+  return getTimeFromDateVar(parent, 0 ).min;
 }
 int jswrap_date_getSeconds(JsVar *parent) {
-  return getTimeFromDateVar(parent, false ).sec;
+  return getTimeFromDateVar(parent, 0 ).sec;
 }
 int jswrap_date_getMilliseconds(JsVar *parent) {
-  return getTimeFromDateVar(parent, false ).ms;
+  return getTimeFromDateVar(parent, 0 ).ms;
 }
 int jswrap_date_getDay(JsVar *parent) {
-  return getCalendarDateFromDateVar(parent, false ).dow;
+  return getCalendarDateFromDateVar(parent, 0 ).dow;
 }
 int jswrap_date_getDate(JsVar *parent) {
-  return getCalendarDateFromDateVar(parent, false ).day;
+  return getCalendarDateFromDateVar(parent, 0 ).day;
 }
 int jswrap_date_getMonth(JsVar *parent) {
-  return getCalendarDateFromDateVar(parent, false ).month;
+  return getCalendarDateFromDateVar(parent, 0 ).month;
 }
 int jswrap_date_getFullYear(JsVar *parent) {
-  return getCalendarDateFromDateVar(parent, false ).year;
+  return getCalendarDateFromDateVar(parent, 0 ).year;
 }
 JsVarFloat jswrap_date_setHours(JsVar *parent, int hoursValue, JsVar *minutesValue, JsVar *secondsValue, JsVar *millisecondsValue) {
-  TimeInDay td = getTimeFromDateVar(parent, false );
+  TimeInDay td = getTimeFromDateVar(parent, 0 );
   td.hour = hoursValue;
   if (jsvIsNumeric(minutesValue))
     td.min = jsvGetInteger(minutesValue);
@@ -13502,7 +13546,7 @@ JsVarFloat jswrap_date_setHours(JsVar *parent, int hoursValue, JsVar *minutesVal
   return jswrap_date_setTime(parent, fromTimeInDay(&td));
 }
 JsVarFloat jswrap_date_setMinutes(JsVar *parent, int minutesValue, JsVar *secondsValue, JsVar *millisecondsValue) {
-  TimeInDay td = getTimeFromDateVar(parent, false );
+  TimeInDay td = getTimeFromDateVar(parent, 0 );
   td.min = minutesValue;
   if (jsvIsNumeric(secondsValue))
     td.sec = jsvGetInteger(secondsValue);
@@ -13512,7 +13556,7 @@ JsVarFloat jswrap_date_setMinutes(JsVar *parent, int minutesValue, JsVar *second
   return jswrap_date_setTime(parent, fromTimeInDay(&td));
 }
 JsVarFloat jswrap_date_setSeconds(JsVar *parent, int secondsValue, JsVar *millisecondsValue) {
-  TimeInDay td = getTimeFromDateVar(parent, false );
+  TimeInDay td = getTimeFromDateVar(parent, 0 );
   td.sec = secondsValue;
   if (jsvIsNumeric(millisecondsValue))
     td.ms = jsvGetInteger(millisecondsValue);
@@ -13520,13 +13564,13 @@ JsVarFloat jswrap_date_setSeconds(JsVar *parent, int secondsValue, JsVar *millis
   return jswrap_date_setTime(parent, fromTimeInDay(&td));
 }
 JsVarFloat jswrap_date_setMilliseconds(JsVar *parent, int millisecondsValue) {
-  TimeInDay td = getTimeFromDateVar(parent, false );
+  TimeInDay td = getTimeFromDateVar(parent, 0 );
   td.ms = millisecondsValue;
   setCorrectTimeZone(&td);
   return jswrap_date_setTime(parent, fromTimeInDay(&td));
 }
 JsVarFloat jswrap_date_setDate(JsVar *parent, int dayValue) {
-  TimeInDay td = getTimeFromDateVar(parent, false );
+  TimeInDay td = getTimeFromDateVar(parent, 0 );
   CalendarDate d = getCalendarDate(td.daysSinceEpoch);
   d.day = dayValue;
   td.daysSinceEpoch = fromCalendarDate(&d);
@@ -13534,7 +13578,7 @@ JsVarFloat jswrap_date_setDate(JsVar *parent, int dayValue) {
   return jswrap_date_setTime(parent, fromTimeInDay(&td));
 }
 JsVarFloat jswrap_date_setMonth(JsVar *parent, int monthValue, JsVar *dayValue) {
-  TimeInDay td = getTimeFromDateVar(parent, false );
+  TimeInDay td = getTimeFromDateVar(parent, 0 );
   CalendarDate d = getCalendarDate(td.daysSinceEpoch);
   d.month = monthValue;
   if (jsvIsNumeric(dayValue))
@@ -13544,7 +13588,7 @@ JsVarFloat jswrap_date_setMonth(JsVar *parent, int monthValue, JsVar *dayValue) 
   return jswrap_date_setTime(parent, fromTimeInDay(&td));
 }
 JsVarFloat jswrap_date_setFullYear(JsVar *parent, int yearValue, JsVar *monthValue, JsVar *dayValue) {
-  TimeInDay td = getTimeFromDateVar(parent, false );
+  TimeInDay td = getTimeFromDateVar(parent, 0 );
   CalendarDate d = getCalendarDate(td.daysSinceEpoch);
   d.year = yearValue;
   if (jsvIsNumeric(monthValue))
@@ -13556,7 +13600,7 @@ JsVarFloat jswrap_date_setFullYear(JsVar *parent, int yearValue, JsVar *monthVal
   return jswrap_date_setTime(parent, fromTimeInDay(&td));
 }
 JsVar *jswrap_date_toString(JsVar *parent) {
-  TimeInDay time = getTimeFromDateVar(parent, false );
+  TimeInDay time = getTimeFromDateVar(parent, 0 );
   CalendarDate date = getCalendarDate(time.daysSinceEpoch);
   char zonesign;
   int zone;
@@ -13573,17 +13617,17 @@ JsVar *jswrap_date_toString(JsVar *parent) {
       zonesign, ((zone/60)*100)+(zone%60));
 }
 JsVar *jswrap_date_toUTCString(JsVar *parent) {
-  TimeInDay time = getTimeFromDateVar(parent, true );
+  TimeInDay time = getTimeFromDateVar(parent, 1 );
   CalendarDate date = getCalendarDate(time.daysSinceEpoch);
   return jsvVarPrintf("%s, %d %s %d %02d:%02d:%02d GMT", &DAYNAMES[date.dow*4], date.day, &MONTHNAMES[date.month*4], date.year, time.hour, time.min, time.sec);
 }
 JsVar *jswrap_date_toISOString(JsVar *parent) {
-  TimeInDay time = getTimeFromDateVar(parent, true );
+  TimeInDay time = getTimeFromDateVar(parent, 1 );
   CalendarDate date = getCalendarDate(time.daysSinceEpoch);
   return jsvVarPrintf("%d-%02d-%02dT%02d:%02d:%02d.%03dZ", date.year, date.month+1, date.day, time.hour, time.min, time.sec, time.ms);
 }
 JsVar *jswrap_date_toLocalISOString(JsVar *parent) {
-  TimeInDay time = getTimeFromDateVar(parent, false );
+  TimeInDay time = getTimeFromDateVar(parent, 0 );
   CalendarDate date = getCalendarDate(time.daysSinceEpoch);
   char zonesign;
   int zone;
@@ -13600,7 +13644,7 @@ JsVar *jswrap_date_toLocalISOString(JsVar *parent) {
 static JsVarInt _parse_int() {
   return (int)stringToIntWithRadix(jslGetTokenValueAsString(), 10, NULL, NULL);
 }
-static bool _parse_time(TimeInDay *time, int initialChars) {
+static _Bool _parse_time(TimeInDay *time, int initialChars) {
   time->hour = (int)stringToIntWithRadix(&jslGetTokenValueAsString()[initialChars], 10, NULL, NULL);
   jslGetNextToken();
   if (lex->tk==':') {
@@ -13620,7 +13664,7 @@ static bool _parse_time(TimeInDay *time, int initialChars) {
             if (strcmp(tkstr,"GMT")==0 || strcmp(tkstr,"Z")==0) {
               time->zone = 0;
               jslGetNextToken();
-              if (lex->tk == LEX_EOF) return true;
+              if (lex->tk == LEX_EOF) return 1;
             } else {
               setCorrectTimeZone(time);
             }
@@ -13639,13 +13683,13 @@ static bool _parse_time(TimeInDay *time, int initialChars) {
           } else {
             setCorrectTimeZone(time);
           }
-          return true;
+          return 1;
         }
       }
     }
   }
   setCorrectTimeZone(time);
-  return false;
+  return 0;
 }
 JsVarFloat jswrap_date_parse(JsVar *str) {
   if (!jsvIsString(str)) return 0;
@@ -13656,9 +13700,9 @@ JsVarFloat jswrap_date_parse(JsVar *str) {
   time.sec = 0;
   time.ms = 0;
   time.zone = 0;
-  time.is_dst = false;
+  time.is_dst = 0;
   CalendarDate date = getCalendarDate(0);
-  bool timezoneSet = false;
+  _Bool timezoneSet = 0;
   JsLex lex;
   JsLex *oldLex = jslSetLex(&lex);
   jslInit(str);
@@ -13678,7 +13722,7 @@ JsVarFloat jswrap_date_parse(JsVar *str) {
             jslGetNextToken();
             if (lex.tk == LEX_INT) {
               _parse_time(&time, 0);
-              timezoneSet = true;
+              timezoneSet = 1;
             }
           }
         }
@@ -13700,7 +13744,7 @@ JsVarFloat jswrap_date_parse(JsVar *str) {
               jslGetNextToken();
               if (lex.tk == LEX_INT) {
                 _parse_time(&time, 0);
-                timezoneSet = true;
+                timezoneSet = 1;
               }
             }
           }
@@ -13726,7 +13770,7 @@ JsVarFloat jswrap_date_parse(JsVar *str) {
             jslGetNextToken();
             if (lex.tk == LEX_ID && jslGetTokenValueAsString()[0]=='T') {
               _parse_time(&time, 1);
-              timezoneSet = true;
+              timezoneSet = 1;
             }
           }
         }
@@ -13843,7 +13887,7 @@ JsVar *jswrap_parseInt(JsVar *v, JsVar *radixVar) {
   char buffer[70];
   char *bufferStart = buffer;
   jsvGetString(v, buffer, 70);
-  bool hasError = false;
+  _Bool hasError = 0;
   if (((!radix) || (radix==16)) &&
       buffer[0]=='0' && (buffer[1]=='x' || buffer[1]=='X')) {
     radix = 16;
@@ -13874,29 +13918,29 @@ JsVarFloat jswrap_parseFloat(JsVar *v) {
   }
   return f;
 }
-bool jswrap_isFinite(JsVar *v) {
+_Bool jswrap_isFinite(JsVar *v) {
   JsVarFloat f = jsvGetFloat(v);
   return !isnan(f) && f!=INFINITY && f!=-INFINITY;
 }
-bool jswrap_isNaN(JsVar *v) {
+_Bool jswrap_isNaN(JsVar *v) {
   if (jsvIsUndefined(v) ||
       jsvIsObject(v) ||
-      ((jsvIsFloat(v)||jsvIsArray(v)) && isnan(jsvGetFloat(v)))) return true;
+      ((jsvIsFloat(v)||jsvIsArray(v)) && isnan(jsvGetFloat(v)))) return 1;
   if (jsvIsString(v)) {
-    bool allWhiteSpace = true;
+    _Bool allWhiteSpace = 1;
     JsvStringIterator it;
     jsvStringIteratorNew(&it,v,0);
     while (jsvStringIteratorHasChar(&it)) {
       if (!isWhitespace(jsvStringIteratorGetCharAndNext(&it))) {
-        allWhiteSpace = false;
+        allWhiteSpace = 0;
         break;
       }
     }
     jsvStringIteratorFree(&it);
-    if (allWhiteSpace) return false;
+    if (allWhiteSpace) return 0;
     return isnan(jsvGetFloat(v));
   }
-  return false;
+  return 0;
 }
 __attribute__ ((noinline)) static int jswrap_btoa_encode(int c) {
   c = c & 0x3F;
@@ -14132,8 +14176,8 @@ JsVar *jswrap_json_stringify(JsVar *v, JsVar *replacer, JsVar *space) {
 }
 JsVar *jswrap_json_parse_internal(JSONFlags flags) {
   switch (lex->tk) {
-  case LEX_R_TRUE: jslGetNextToken(); return jsvNewFromBool(true);
-  case LEX_R_FALSE: jslGetNextToken(); return jsvNewFromBool(false);
+  case LEX_R_TRUE: jslGetNextToken(); return jsvNewFromBool(1);
+  case LEX_R_FALSE: jslGetNextToken(); return jsvNewFromBool(0);
   case LEX_R_NULL: jslGetNextToken(); return jsvNewWithFlags(JSV_NULL);
   case '-': {
     jslGetNextToken();
@@ -14226,7 +14270,7 @@ JsVar *jswrap_json_parse_ext(JsVar *v, JSONFlags flags) {
 JsVar *jswrap_json_parse(JsVar *v) {
   return jswrap_json_parse_ext(v, 0);
 }
-JsVar *jswrap_json_parse_liberal(JsVar *v, bool noExceptions) {
+JsVar *jswrap_json_parse_liberal(JsVar *v, _Bool noExceptions) {
   JsVar *res = jswrap_json_parse_ext(v, JSON_DROP_QUOTES);
   if (noExceptions) {
     jsvUnLock(jspGetException());
@@ -14239,13 +14283,13 @@ void jsfGetJSONForFunctionWithCallback(JsVar *var, JSONFlags flags, vcbprintf_ca
   JsVar *codeVar = 0;
   JsvObjectIterator it;
   jsvObjectIteratorNew(&it, var);
-  bool firstParm = true;
+  _Bool firstParm = 1;
   cbprintf(user_callback, user_data, "(");
   while (jsvObjectIteratorHasValue(&it)) {
     JsVar *child = jsvObjectIteratorGetKey(&it);
     if (jsvIsFunctionParameter(child)) {
       if (firstParm)
-        firstParm=false;
+        firstParm=0;
       else
         cbprintf(user_callback, user_data, ",");
       JsVar *name = jsvNewFromStringVar(child, 1, (0x7FFFFFFF));
@@ -14266,7 +14310,7 @@ void jsfGetJSONForFunctionWithCallback(JsVar *var, JSONFlags flags, vcbprintf_ca
       if (flags & JSON_LIMIT) {
         cbprintf(user_callback, user_data, "{%s}", JSON_LIMIT_TEXT);
       } else {
-        bool hasNewLine = jsvGetStringIndexOf(codeVar,'\n')>=0;
+        _Bool hasNewLine = jsvGetStringIndexOf(codeVar,'\n')>=0;
         user_callback(hasNewLine?"{\n  ":"{", user_data);
         if (jsvIsFunctionReturn(var))
           user_callback("return ", user_data);
@@ -14277,7 +14321,7 @@ void jsfGetJSONForFunctionWithCallback(JsVar *var, JSONFlags flags, vcbprintf_ca
   }
   jsvUnLock(codeVar);
 }
-bool jsonNeedsNewLine(JsVar *v) {
+_Bool jsonNeedsNewLine(JsVar *v) {
   return !(jsvIsUndefined(v) || jsvIsNull(v) || jsvIsNumeric(v));
 }
 void jsonNewLine(JSONFlags flags, const char *whitespace, vcbprintf_callback user_callback, void *user_data) {
@@ -14286,43 +14330,43 @@ void jsonNewLine(JSONFlags flags, const char *whitespace, vcbprintf_callback use
   while (indent--)
     user_callback(whitespace, user_data);
 }
-static bool jsfGetJSONForObjectItWithCallback(JsvObjectIterator *it, JSONFlags flags, const char *whitespace, JSONFlags nflags, vcbprintf_callback user_callback, void *user_data, bool first) {
-  bool needNewLine = false;
+static _Bool jsfGetJSONForObjectItWithCallback(JsvObjectIterator *it, JSONFlags flags, const char *whitespace, JSONFlags nflags, vcbprintf_callback user_callback, void *user_data, _Bool first) {
+  _Bool needNewLine = 0;
   size_t sinceNewLine = 0;
   while (jsvObjectIteratorHasValue(it) && !jspIsInterrupted()) {
     JsVar *index = jsvObjectIteratorGetKey(it);
     JsVar *item = jsvGetValueOfName(index);
-    bool hidden = jsvIsInternalObjectKey(index) ||
+    _Bool hidden = jsvIsInternalObjectKey(index) ||
         ((flags & JSON_IGNORE_FUNCTIONS) && jsvIsFunction(item)) ||
         ((flags&JSON_NO_UNDEFINED) && jsvIsUndefined(item)) ||
         jsvIsGetterOrSetter(item);
     if (!hidden) {
       sinceNewLine++;
       if (!first) cbprintf(user_callback, user_data, (flags&JSON_PRETTY)?", ":",");
-      bool newNeedsNewLine = (flags&JSON_SOME_NEWLINES) && jsonNeedsNewLine(item);
+      _Bool newNeedsNewLine = (flags&JSON_SOME_NEWLINES) && jsonNeedsNewLine(item);
       if ((flags&JSON_SOME_NEWLINES) && sinceNewLine>JSON_ITEMS_ON_LINE_OBJECT)
-        needNewLine = true;
+        needNewLine = 1;
       if (flags&JSON_ALL_NEWLINES) {
-        needNewLine = true;
-        newNeedsNewLine = true;
+        needNewLine = 1;
+        newNeedsNewLine = 1;
       }
       if (needNewLine || newNeedsNewLine) {
         jsonNewLine(nflags, whitespace, user_callback, user_data);
-        needNewLine = false;
+        needNewLine = 0;
         sinceNewLine = 0;
       }
-      bool addQuotes = true;
+      _Bool addQuotes = 1;
       if (flags&JSON_DROP_QUOTES) {
-        if (jsvIsIntegerish(index)) addQuotes = false;
+        if (jsvIsIntegerish(index)) addQuotes = 0;
         else if (jsvIsString(index) && jsvGetStringLength(index)<63) {
           char buf[64];
           jsvGetString(index,buf,sizeof(buf));
-          if (isIDString(buf)) addQuotes=false;
+          if (isIDString(buf)) addQuotes=0;
         }
       }
       cbprintf(user_callback, user_data, addQuotes?((flags&JSON_ALL_UNICODE_ESCAPE)?"%Q%s":"%q%s"):"%v%s", index, (flags&JSON_PRETTY)?": ":":");
       if (first)
-        first = false;
+        first = 0;
       jsfGetJSONWithCallback(item, index, nflags, whitespace, user_callback, user_data);
       needNewLine = newNeedsNewLine;
     }
@@ -14345,12 +14389,12 @@ void jsfGetJSONWithCallback(JsVar *var, JsVar *varName, JSONFlags flags, const c
   var->flags |= JSV_IS_RECURSING;
   if (jsvIsArray(var)) {
     JsVarInt length = jsvGetArrayLength(var);
-    bool limited = (flags&JSON_LIMIT) && (length>(JsVarInt)JSON_LIMIT_AMOUNT);
-    bool needNewLine = false;
+    _Bool limited = (flags&JSON_LIMIT) && (length>(JsVarInt)JSON_LIMIT_AMOUNT);
+    _Bool needNewLine = 0;
     cbprintf(user_callback, user_data, (flags&JSON_PRETTY)?"[ ":"[");
     JsVarInt lastIndex = -1;
-    bool numeric = true;
-    bool first = true;
+    _Bool numeric = 1;
+    _Bool first = 1;
     JsvObjectIterator it;
     jsvObjectIteratorNew(&it, var);
     while (lastIndex+1<length && numeric && !jspIsInterrupted()) {
@@ -14362,16 +14406,16 @@ void jsfGetJSONWithCallback(JsVar *var, JsVar *varName, JSONFlags flags, const c
           lastIndex++;
           if (!limited || lastIndex<(JsVarInt)JSON_LIMITED_AMOUNT || lastIndex>=length-(JsVarInt)JSON_LIMITED_AMOUNT) {
             if (!first) cbprintf(user_callback, user_data, (flags&JSON_PRETTY)?", ":",");
-            first = false;
+            first = 0;
             if (limited && lastIndex==length-(JsVarInt)JSON_LIMITED_AMOUNT) cbprintf(user_callback, user_data, JSON_LIMIT_TEXT);
-            bool newNeedsNewLine = ((flags&JSON_SOME_NEWLINES) && jsonNeedsNewLine(item));
+            _Bool newNeedsNewLine = ((flags&JSON_SOME_NEWLINES) && jsonNeedsNewLine(item));
             if (flags&JSON_ALL_NEWLINES) {
-              needNewLine = true;
-              newNeedsNewLine = true;
+              needNewLine = 1;
+              newNeedsNewLine = 1;
             }
             if (needNewLine || newNeedsNewLine) {
               jsonNewLine(nflags, whitespace, user_callback, user_data);
-              needNewLine = false;
+              needNewLine = 0;
             }
             if (lastIndex == index) {
               JsVar *indexVar = jsvNewFromInteger(index);
@@ -14385,7 +14429,7 @@ void jsfGetJSONWithCallback(JsVar *var, JsVar *varName, JSONFlags flags, const c
         jsvUnLock(item);
         jsvObjectIteratorNext(&it);
       } else {
-        numeric = false;
+        numeric = 0;
       }
       jsvUnLock(key);
     }
@@ -14396,34 +14440,34 @@ void jsfGetJSONWithCallback(JsVar *var, JsVar *varName, JSONFlags flags, const c
     cbprintf(user_callback, user_data, (flags&JSON_PRETTY)?" ]":"]");
   } else if (jsvIsArrayBuffer(var)) {
     JsvArrayBufferIterator it;
-    bool allZero = true;
+    _Bool allZero = 1;
     jsvArrayBufferIteratorNew(&it, var, 0);
     while (jsvArrayBufferIteratorHasElement(&it)) {
       if (jsvArrayBufferIteratorGetFloatValue(&it)!=0)
-        allZero = false;
+        allZero = 0;
       jsvArrayBufferIteratorNext(&it);
     }
     jsvArrayBufferIteratorFree(&it);
-    bool asArray = flags&JSON_ARRAYBUFFER_AS_ARRAY;
+    _Bool asArray = flags&JSON_ARRAYBUFFER_AS_ARRAY;
     if (allZero && !asArray) {
       cbprintf(user_callback, user_data, "new %s(%d)", jswGetBasicObjectName(var), jsvGetArrayBufferLength(var));
     } else {
       const char *aname = jswGetBasicObjectName(var);
-      bool isBasicArrayBuffer = strcmp(aname,"ArrayBuffer")==0;
+      _Bool isBasicArrayBuffer = strcmp(aname,"ArrayBuffer")==0;
       if (isBasicArrayBuffer) {
         aname="Uint8Array";
       }
       cbprintf(user_callback, user_data, asArray?"[":"new %s([", aname);
       if (flags&JSON_ALL_NEWLINES) jsonNewLine(nflags, whitespace, user_callback, user_data);
       size_t length = jsvGetArrayBufferLength(var);
-      bool limited = (flags&JSON_LIMIT) && (length>JSON_LIMIT_AMOUNT);
+      _Bool limited = (flags&JSON_LIMIT) && (length>JSON_LIMIT_AMOUNT);
       jsvArrayBufferIteratorNew(&it, var, 0);
       while (jsvArrayBufferIteratorHasElement(&it) && !jspIsInterrupted()) {
         if (!limited || it.index<JSON_LIMITED_AMOUNT || it.index>=length-JSON_LIMITED_AMOUNT) {
           if (it.index>0) cbprintf(user_callback, user_data, (flags&JSON_PRETTY)?", ":",");
           if (flags&JSON_ALL_NEWLINES) jsonNewLine(nflags, whitespace, user_callback, user_data);
           if (limited && it.index==length-JSON_LIMITED_AMOUNT) cbprintf(user_callback, user_data, JSON_LIMIT_TEXT);
-          JsVar *item = jsvArrayBufferIteratorGetValue(&it, false );
+          JsVar *item = jsvArrayBufferIteratorGetValue(&it, 0 );
           jsfGetJSONWithCallback(item, NULL, nflags, whitespace, user_callback, user_data);
           jsvUnLock(item);
         }
@@ -14436,21 +14480,21 @@ void jsfGetJSONWithCallback(JsVar *var, JsVar *varName, JSONFlags flags, const c
     }
   } else if (jsvIsObject(var)) {
     {
-      bool showContents = true;
+      _Bool showContents = 1;
       if (flags & JSON_SHOW_OBJECT_NAMES) {
         JsVar *proto = jsvObjectGetChildIfExists(var, "__proto__");
         if (jsvHasChildren(proto)) {
           JsVar *constr = jsvObjectGetChildIfExists(proto, "constructor");
           if (constr) {
-            JsVar *p = jsvGetIndexOf(execInfo.root, constr, true);
+            JsVar *p = jsvGetIndexOf(execInfo.root, constr, 1);
             if (p) cbprintf(user_callback, user_data, "%v: ", p);
             jsvUnLock2(p,constr);
-            JsVar *toStringFn = jspGetNamedField(var, "toString", false);
+            JsVar *toStringFn = jspGetNamedField(var, "toString", 0);
             if (jsvIsFunction(toStringFn) && toStringFn->varData.native.ptr != (void (*)(void))jswrap_object_toString) {
               JsVar *result = jspExecuteFunction(toStringFn,var,0,0);
               cbprintf(user_callback, user_data, "%v", result);
               jsvUnLock(result);
-              showContents = false;
+              showContents = 0;
             }
             jsvUnLock(toStringFn);
           }
@@ -14460,7 +14504,7 @@ void jsfGetJSONWithCallback(JsVar *var, JsVar *varName, JSONFlags flags, const c
       if (showContents) {
         JsVar *toStringFn = 0;
         if (flags & JSON_ALLOW_TOJSON)
-          toStringFn = jspGetNamedField(var, "toJSON", false);
+          toStringFn = jspGetNamedField(var, "toJSON", 0);
         if (jsvIsFunction(toStringFn)) {
           JsVar *varNameStr = varName ? jsvAsString(varName) : 0;
           JsVar *result = jspExecuteFunction(toStringFn,var,1,&varNameStr);
@@ -14472,7 +14516,7 @@ void jsfGetJSONWithCallback(JsVar *var, JsVar *varName, JSONFlags flags, const c
           JsvObjectIterator it;
           jsvObjectIteratorNew(&it, var);
           cbprintf(user_callback, user_data, (flags&JSON_PRETTY)?"{ ":"{");
-          bool needNewLine = jsfGetJSONForObjectItWithCallback(&it, flags, whitespace, nflags, user_callback, user_data, true);
+          _Bool needNewLine = jsfGetJSONForObjectItWithCallback(&it, flags, whitespace, nflags, user_callback, user_data, 1);
           jsvObjectIteratorFree(&it);
           if (needNewLine) jsonNewLine(flags, whitespace, user_callback, user_data);
           cbprintf(user_callback, user_data, (flags&JSON_PRETTY)?" }":"}");
@@ -14554,7 +14598,7 @@ JsVar *jswrap_number_toFixed(JsVar *parent, int decimals) {
 }
 JsVarInt jswrap_stream_available(JsVar *parent);
 JsVar *jswrap_stream_read(JsVar *parent, JsVarInt chars);
-bool jswrap_stream_pushData(JsVar *parent, JsVar *dataString, bool force);
+_Bool jswrap_stream_pushData(JsVar *parent, JsVar *dataString, _Bool force);
 JsVar *jswrap_object_constructor(JsVar *value) {
   if (jsvIsObject(value) || jsvIsArray(value) || jsvIsFunction(value))
     return jsvLockAgain(value);
@@ -14562,7 +14606,7 @@ JsVar *jswrap_object_constructor(JsVar *value) {
   JsVar *funcName = objName ? jspGetNamedVariable(objName) : 0;
   if (!funcName) return jsvNewObject();
   JsVar *func = jsvSkipName(funcName);
-  JsVar *result = jspeFunctionCall(func, funcName, 0, false, 1, &value);
+  JsVar *result = jspeFunctionCall(func, funcName, 0, 0, 1, &value);
   jsvUnLock2(funcName, func);
   return result;
 }
@@ -14605,7 +14649,7 @@ JsVar *jswrap_object_toString(JsVar *parent, JsVar *arg0) {
 }
 JsVar *jswrap_object_clone(JsVar *parent) {
   if (!parent) return 0;
-  return jsvCopy(parent, true);
+  return jsvCopy(parent, 1);
 }
 static void _jswrap_object_keys_or_property_names_iterator(
     const JswSymList *symbols,
@@ -14634,7 +14678,7 @@ void jswrap_object_keys_or_property_names_cb(
     while (jsvIteratorHasElement(&it)) {
       JsVar *key = jsvIteratorGetKey(&it);
       if (!(checkerFunction && checkerFunction(key)) || (jsvIsStringEqual(key, "constructor"))) {
-        JsVar *name = jsvAsStringAndUnLock(jsvCopyNameOnly(key, false, false));
+        JsVar *name = jsvAsStringAndUnLock(jsvCopyNameOnly(key, 0, 0));
         if (name) {
           callback(data, name);
           jsvUnLock(name);
@@ -14690,7 +14734,7 @@ JsVar *jswrap_object_keys_or_property_names(
 void _jswrap_object_values_cb(void *data, JsVar *name) {
   JsVar **cbData = (JsVar**)data;
   JsVar *field = jsvAsArrayIndex(name);
-  jsvArrayPushAndUnLock(cbData[0], jspGetVarNamedField(cbData[1], field, false));
+  jsvArrayPushAndUnLock(cbData[0], jspGetVarNamedField(cbData[1], field, 0));
   jsvUnLock(field);
 }
 void _jswrap_object_entries_cb(void *data, JsVar *name) {
@@ -14699,11 +14743,11 @@ void _jswrap_object_entries_cb(void *data, JsVar *name) {
   if (!tuple) return;
   jsvArrayPush(tuple, name);
   JsVar *field = jsvAsArrayIndex(name);
-  jsvArrayPushAndUnLock(tuple, jspGetVarNamedField(cbData[1], field, false));
+  jsvArrayPushAndUnLock(tuple, jspGetVarNamedField(cbData[1], field, 0));
   jsvUnLock(field);
   jsvArrayPushAndUnLock(cbData[0], tuple);
 }
-JsVar *jswrap_object_values_or_entries(JsVar *object, bool returnEntries) {
+JsVar *jswrap_object_values_or_entries(JsVar *object, _Bool returnEntries) {
   JsVar *cbData[2];
   cbData[0] = jsvNewEmptyArray();
   cbData[1] = object;
@@ -14753,7 +14797,7 @@ JsVar *jswrap_object_getOwnPropertyDescriptor(JsVar *parent, JsVar *name) {
   if (!jswrap_object_hasOwnProperty(parent, name))
     return 0;
   JsVar *propName = jsvAsArrayIndex(name);
-  JsVar *varName = jspGetVarNamedField(parent, propName, true);
+  JsVar *varName = jspGetVarNamedField(parent, propName, 1);
   jsvUnLock(propName);
   do { } while(0);
   if (!varName) return 0;
@@ -14762,7 +14806,7 @@ JsVar *jswrap_object_getOwnPropertyDescriptor(JsVar *parent, JsVar *name) {
     jsvUnLock(varName);
     return 0;
   }
-  bool isBuiltIn = jsvIsNewChild(varName);
+  _Bool isBuiltIn = jsvIsNewChild(varName);
   JsvIsInternalChecker checkerFunction = jsvGetInternalFunctionCheckerFor(parent);
   jsvObjectSetChildAndUnLock(obj, "writable", jsvNewFromBool(!jsvIsConstant(varName)));
   jsvObjectSetChildAndUnLock(obj, "enumerable", jsvNewFromBool(!checkerFunction || !checkerFunction(varName)));
@@ -14799,13 +14843,13 @@ JsVar *jswrap_object_getOwnPropertyDescriptors(JsVar *parent) {
   jsvUnLock(ownPropertyNames);
   return descriptors;
 }
-bool jswrap_object_hasOwnProperty(JsVar *parent, JsVar *name) {
+_Bool jswrap_object_hasOwnProperty(JsVar *parent, JsVar *name) {
   JsVar *propName = jsvAsArrayIndex(name);
-  bool contains = false;
+  _Bool contains = 0;
   if (jsvHasChildren(parent)) {
-    JsVar *foundVar = jsvFindChildFromVar(parent, propName, false);
+    JsVar *foundVar = jsvFindChildFromVar(parent, propName, 0);
     if (foundVar) {
-      contains = true;
+      contains = 1;
       jsvUnLock(foundVar);
     }
   }
@@ -14815,7 +14859,7 @@ bool jswrap_object_hasOwnProperty(JsVar *parent, JsVar *name) {
       char str[32];
       jsvGetString(propName, str, sizeof(str));
       JsVar *v = jswBinarySearch(symbols, parent, str);
-      if (v) contains = true;
+      if (v) contains = 1;
       jsvUnLock(v);
     }
   }
@@ -14872,7 +14916,7 @@ JsVar *jswrap_object_defineProperties(JsVar *parent, JsVar *props) {
   return jsvLockAgain(parent);
 }
 JsVar *jswrap_object_getPrototypeOf(JsVar *object) {
-  return jspGetNamedField(object, "__proto__", false);
+  return jspGetNamedField(object, "__proto__", 0);
 }
 JsVar *jswrap_object_setPrototypeOf(JsVar *object, JsVar *proto) {
   JsVar *v = (jsvIsFunction(object)||jsvIsObject(object)) ? jsvFindOrAddChildFromString(object, "__proto__") : 0;
@@ -14888,13 +14932,13 @@ JsVar *jswrap_object_assign(JsVar *args) {
   JsVar *result = 0;
   JsvObjectIterator argsIt;
   jsvObjectIteratorNew(&argsIt, args);
-  bool error = false;
+  _Bool error = 0;
   while (!error && jsvObjectIteratorHasValue(&argsIt)) {
     JsVar *arg = jsvObjectIteratorGetValue(&argsIt);
     if (jsvIsUndefined(arg) || jsvIsNull(arg)) {
     } else if (!jsvIsObject(arg)) {
       jsExceptionHere(JSET_TYPEERROR, "Expecting Object, got %t", arg);
-      error = true;
+      error = 1;
     } else if (!result) {
       result = jsvLockAgain(arg);
     } else {
@@ -14906,7 +14950,7 @@ JsVar *jswrap_object_assign(JsVar *args) {
   jsvObjectIteratorFree(&argsIt);
   return result;
 }
-bool jswrap_boolean_constructor(JsVar *value) {
+_Bool jswrap_boolean_constructor(JsVar *value) {
   return jsvGetBool(value);
 }
 void jswrap_object_removeListener(JsVar *parent, JsVar *event, JsVar *callback) {
@@ -14917,12 +14961,12 @@ void jswrap_object_removeListener(JsVar *parent, JsVar *event, JsVar *callback) 
   if (jsvIsString(event)) {
     JsVar *eventName = jsvVarPrintf("#on""%v", event);
     if (!eventName) return;
-    JsVar *eventListName = jsvFindChildFromVar(parent, eventName, true);
+    JsVar *eventListName = jsvFindChildFromVar(parent, eventName, 1);
     jsvUnLock(eventName);
     JsVar *eventList = jsvSkipName(eventListName);
     if (eventList) {
       if (jsvIsArray(eventList)) {
-        JsVar *idx = jsvGetIndexOf(eventList, callback, true);
+        JsVar *idx = jsvGetIndexOf(eventList, callback, 1);
         if (idx)
           jsvRemoveChildAndUnLock(eventList, idx);
       }
@@ -14942,7 +14986,7 @@ void jswrap_object_removeAllListeners(JsVar *parent, JsVar *event) {
   if (jsvIsString(event)) {
     JsVar *eventName = jsvVarPrintf("#on""%v", event);
     if (!eventName) return;
-    JsVar *eventList = jsvFindChildFromVar(parent, eventName, true);
+    JsVar *eventList = jsvFindChildFromVar(parent, eventName, 1);
     jsvUnLock(eventName);
     if (eventList) {
       jsvRemoveChildAndUnLock(parent, eventList);
@@ -14953,7 +14997,7 @@ void jswrap_object_removeAllListeners(JsVar *parent, JsVar *event) {
     while (jsvObjectIteratorHasValue(&it)) {
       JsVar *key = jsvObjectIteratorGetKey(&it);
       jsvObjectIteratorNext(&it);
-      if (jsvIsStringEqualOrStartsWith(key, "#on", true)) {
+      if (jsvIsStringEqualOrStartsWith(key, "#on", 1)) {
         jsvRemoveChild(parent, key);
       }
       jsvUnLock(key);
@@ -15008,7 +15052,7 @@ void jswrap_function_replaceWith(JsVar *oldFunc, JsVar *newFunc) {
         copy = jsvMakeIntoVariableName(jsvNewFromStringVarComplete(el), fnCode);
         jsvUnLock(fnCode);
       } else
-        copy = jsvCopy(el, true);
+        copy = jsvCopy(el, 1);
       if (copy) {
         jsvAddName(oldFunc, copy);
         jsvUnLock(copy);
@@ -15053,7 +15097,7 @@ JsVar *jswrap_function_apply_or_call(JsVar *parent, JsVar *thisArg, JsVar *argsA
     jsExceptionHere(JSET_ERROR, "Second argument to Function.apply must be iterable, got %t", argsArray);
     return 0;
   }
-  JsVar *r = jspeFunctionCall(parent, 0, thisArg, false, (int)argC, args);
+  JsVar *r = jspeFunctionCall(parent, 0, thisArg, 0, (int)argC, args);
   jsvUnLockMany(argC, args);
   return r;
 }
@@ -15073,9 +15117,9 @@ JsVar *jswrap_function_bind(JsVar *parent, JsVar *thisArg, JsVar *argsArray) {
   while (jsvObjectIteratorHasValue(&fnIt)) {
     JsVar *param = jsvObjectIteratorGetKey(&fnIt);
     JsVar *defaultValue = jsvObjectIteratorGetValue(&fnIt);
-    bool wasBound = jsvIsFunctionParameter(param) && defaultValue;
+    _Bool wasBound = jsvIsFunctionParameter(param) && defaultValue;
     if (wasBound) {
-      JsVar *newParam = jsvCopy(param, true);
+      JsVar *newParam = jsvCopy(param, 1);
       if (newParam) {
         jsvAddName(fn, newParam);
         jsvUnLock(newParam);
@@ -15090,17 +15134,17 @@ JsVar *jswrap_function_bind(JsVar *parent, JsVar *thisArg, JsVar *argsArray) {
     jsvObjectIteratorNew(&argIt, argsArray);
     while (jsvObjectIteratorHasValue(&argIt)) {
       JsVar *defaultValue = jsvObjectIteratorGetValue(&argIt);
-      bool addedParam = false;
+      _Bool addedParam = 0;
       while (!addedParam && jsvObjectIteratorHasValue(&fnIt)) {
         JsVar *param = jsvObjectIteratorGetKey(&fnIt);
         if (!jsvIsFunctionParameter(param)) {
           jsvUnLock(param);
           break;
         }
-        JsVar *newParam = jsvCopyNameOnly(param, false, true);
+        JsVar *newParam = jsvCopyNameOnly(param, 0, 1);
         jsvSetValueOfName(newParam, defaultValue);
         jsvAddName(fn, newParam);
-        addedParam = true;
+        addedParam = 1;
         jsvUnLock2(param, newParam);
         jsvObjectIteratorNext(&fnIt);
       }
@@ -15114,7 +15158,7 @@ JsVar *jswrap_function_bind(JsVar *parent, JsVar *thisArg, JsVar *argsArray) {
   }
   while (jsvObjectIteratorHasValue(&fnIt)) {
     JsVar *param = jsvObjectIteratorGetKey(&fnIt);
-    JsVar *newParam = jsvCopyNameOnly(param, true, true);
+    JsVar *newParam = jsvCopyNameOnly(param, 1, 1);
     if (newParam) {
       jsvAddName(fn, newParam);
       jsvUnLock(newParam);
@@ -15129,8 +15173,8 @@ JsVar *jswrap_function_bind(JsVar *parent, JsVar *thisArg, JsVar *argsArray) {
 typedef struct {
   JsVar *sourceStr;
   size_t startIndex;
-  bool ignoreCase;
-  bool rangeMatch;
+  _Bool ignoreCase;
+  _Bool rangeMatch;
   short rangeFirstChar;
   int groups;
   size_t groupStart[9];
@@ -15170,12 +15214,12 @@ static JsVar *nomatchfound(char *regexp, matchInfo info) {
   jsvStringIteratorFree(&txtIt);
   return rmatch;
 }
-static JsVar *match(char *regexp, JsVar *str, size_t startIndex, bool ignoreCase) {
+static JsVar *match(char *regexp, JsVar *str, size_t startIndex, _Bool ignoreCase) {
   matchInfo info;
   info.sourceStr = str;
   info.startIndex = startIndex;
   info.ignoreCase = ignoreCase;
-  info.rangeMatch = false;
+  info.rangeMatch = 0;
   info.rangeFirstChar = 256;
   info.groups = 0;
   JsVar *rmatch;
@@ -15195,15 +15239,15 @@ static JsVar *match(char *regexp, JsVar *str, size_t startIndex, bool ignoreCase
   jsvStringIteratorFree(&txtIt);
   return rmatch;
 }
-bool matchcharacter(char *regexp, JsvStringIterator *txtIt, int *length, matchInfo *info) {
+_Bool matchcharacter(char *regexp, JsvStringIterator *txtIt, int *length, matchInfo *info) {
   *length = 1;
   char ch = jsvStringIteratorGetChar(txtIt);
-  if (regexp[0]=='.') return true;
+  if (regexp[0]=='.') return 1;
   if (regexp[0]=='[') {
-    info->rangeMatch = true;
-    bool inverted = regexp[1]=='^';
+    info->rangeMatch = 1;
+    _Bool inverted = regexp[1]=='^';
     if (inverted) (*length)++;
-    bool matchAny = false;
+    _Bool matchAny = 0;
     while (regexp[*length] && regexp[*length]!=']') {
       int matchLen;
       if (regexp[*length]=='.') {
@@ -15218,9 +15262,9 @@ bool matchcharacter(char *regexp, JsvStringIterator *txtIt, int *length, matchIn
       (*length)++;
     } else {
       jsExceptionHere(JSET_ERROR, "Unfinished character set in RegEx");
-      return false;
+      return 0;
     }
-    info->rangeMatch = false;
+    info->rangeMatch = 0;
     return matchAny != inverted;
   }
   char cH = regexp[0];
@@ -15242,7 +15286,7 @@ bool matchcharacter(char *regexp, JsvStringIterator *txtIt, int *length, matchIn
     if (cH=='0') { cH=0; goto haveCode; }
     if (cH>='1' && cH<='9') {
       jsExceptionHere(JSET_ERROR, "Backreferences not supported");
-      return false;
+      return 0;
     }
     if (cH=='x' && regexp[2] && regexp[3]) {
       *length = 4;
@@ -15255,7 +15299,7 @@ haveCode:
     info->rangeFirstChar = cH;
     (*length)++;
     int matchLen;
-    bool match = matchcharacter(&regexp[*length], txtIt, &matchLen, info);
+    _Bool match = matchcharacter(&regexp[*length], txtIt, &matchLen, info);
     (*length)+=matchLen;
     return match;
   }
@@ -15304,7 +15348,7 @@ static JsVar *matchhere(char *regexp, JsvStringIterator *txtIt, matchInfo info) 
     return matchhere(regexp+1, txtIt, info);
   }
   int charLength;
-  bool charMatched = matchcharacter(regexp, txtIt, &charLength, &info);
+  _Bool charMatched = matchcharacter(regexp, txtIt, &charLength, &info);
   if (regexp[charLength] == '*' || regexp[charLength] == '+') {
     char op = regexp[charLength];
     if (!charMatched && op=='+') {
@@ -15352,16 +15396,16 @@ JsVar *jswrap_regexp_constructor(JsVar *str, JsVar *flags) {
   JsvStringIterator it;
   jsvStringIteratorNew(&it,str,0);
   char ch = 0;
-  bool noControlChars = true;
+  _Bool noControlChars = 1;
   char buf[32];
   size_t bufc = 0;
   while (jsvStringIteratorHasChar(&it)) {
-    bool wasSlash = ch=='\\';
-    if (ch && strchr(".[]()|^*+$",ch)) noControlChars = false;
+    _Bool wasSlash = ch=='\\';
+    if (ch && strchr(".[]()|^*+$",ch)) noControlChars = 0;
     ch = jsvStringIteratorGetCharAndNext(&it);
     if (wasSlash) {
       if (!strchr(".\\",ch)) {
-        noControlChars = false;
+        noControlChars = 0;
         ch = 0;
       }
     }
@@ -15381,7 +15425,7 @@ JsVar *jswrap_regexp_exec(JsVar *parent, JsVar *arg) {
   JsVar *endsWith = jsvObjectGetChildIfExists(parent, "endsWith");
   if (endsWith) {
     int idx = (int)jsvGetStringLength(arg) - (int)jsvGetStringLength(endsWith);
-    if ((lastIndex <= idx) && jsvCompareString(arg, endsWith, (size_t)idx,0,true)==0) {
+    if ((lastIndex <= idx) && jsvCompareString(arg, endsWith, (size_t)idx,0,1)==0) {
       JsVar *rmatch = jsvNewEmptyArray();
       jsvSetArrayItem(rmatch, 0, endsWith);
       jsvObjectSetChildAndUnLock(rmatch, "index", jsvNewFromInteger(idx));
@@ -15421,15 +15465,15 @@ JsVar *jswrap_regexp_exec(JsVar *parent, JsVar *arg) {
   jsvObjectSetChildAndUnLock(parent, "lastIndex", jsvNewFromInteger(lastIndex));
   return rmatch;
 }
-bool jswrap_regexp_test(JsVar *parent, JsVar *str) {
+_Bool jswrap_regexp_test(JsVar *parent, JsVar *str) {
   JsVar *v = jswrap_regexp_exec(parent, str);
-  bool r = v && !jsvIsNull(v);
+  _Bool r = v && !jsvIsNull(v);
   jsvUnLock(v);
   return r;
 }
-bool jswrap_regexp_hasFlag(JsVar *parent, char flag) {
+_Bool jswrap_regexp_hasFlag(JsVar *parent, char flag) {
   JsVar *flags = jsvObjectGetChildIfExists(parent, "flags");
-  bool has = false;
+  _Bool has = 0;
   if (jsvIsString(flags)) {
     JsvStringIterator it;
     jsvStringIteratorNew(&it, flags, 0);
@@ -15486,7 +15530,7 @@ JsVar *jswrap_string_charCodeAt(JsVar *parent, JsVarInt idx) {
   if (uChar<0) return jsvNewFromFloat(NAN);
   return jsvNewFromInteger(uChar);
 }
-int jswrap_string_indexOf(JsVar *parent, JsVar *substring, JsVar *fromIndex, bool lastIndexOf) {
+int jswrap_string_indexOf(JsVar *parent, JsVar *substring, JsVar *fromIndex, _Bool lastIndexOf) {
   if (!jsvIsString(parent)) return 0;
   substring = jsvAsString(substring);
   if (!substring) return 0;
@@ -15518,7 +15562,7 @@ int jswrap_string_indexOf(JsVar *parent, JsVar *substring, JsVar *fromIndex, boo
     }
   }
   for (;idx!=end;idx+=dir) {
-    if (jsvCompareString(parent, substring, (size_t)idx, 0, true)==0) {
+    if (jsvCompareString(parent, substring, (size_t)idx, 0, 1)==0) {
       jsvUnLock(substring);
       return idx;
     }
@@ -15553,7 +15597,7 @@ JsVar *jswrap_string_match(JsVar *parent, JsVar *subStr) {
     return array;
   }
   subStr = jsvAsString(subStr);
-  int idx = jswrap_string_indexOf(parent, subStr, 0, false);
+  int idx = jswrap_string_indexOf(parent, subStr, 0, 0);
   if (idx>=0) {
       JsVar *array = jsvNewEmptyArray();
       if (!array) {
@@ -15568,7 +15612,7 @@ JsVar *jswrap_string_match(JsVar *parent, JsVar *subStr) {
   jsvUnLock(subStr);
   return jsvNewNull();
 }
-static JsVar *_jswrap_string_replace(JsVar *parent, JsVar *subStr, JsVar *newSubStr, bool replaceAll) {
+static JsVar *_jswrap_string_replace(JsVar *parent, JsVar *subStr, JsVar *newSubStr, _Bool replaceAll) {
   JsVar *str = jsvAsString(parent);
   if (jsvIsInstanceOf(subStr, "RegExp")) {
     JsVar *replace;
@@ -15577,8 +15621,8 @@ static JsVar *_jswrap_string_replace(JsVar *parent, JsVar *subStr, JsVar *newSub
     else
       replace = jsvAsString(newSubStr);
     jsvObjectSetChildAndUnLock(subStr, "lastIndex", jsvNewFromInteger(0));
-    bool global = jswrap_regexp_hasFlag(subStr,'g');
-    if (replaceAll) global = true;
+    _Bool global = jswrap_regexp_hasFlag(subStr,'g');
+    if (replaceAll) global = 1;
     JsVar *newStr = jsvNewFromEmptyString();
     JsvStringIterator dst;
     jsvStringIteratorNew(&dst, newStr, 0);
@@ -15599,7 +15643,7 @@ static JsVar *_jswrap_string_replace(JsVar *parent, JsVar *subStr, JsVar *newSub
           args[argCount++] = v;
         args[argCount++] = jsvObjectGetChildIfExists(match,"index");
         args[argCount++] = jsvObjectGetChildIfExists(match,"input");
-        JsVar *result = jsvAsStringAndUnLock(jspeFunctionCall(replace, 0, 0, false, (JsVarInt)argCount, args));
+        JsVar *result = jsvAsStringAndUnLock(jspeFunctionCall(replace, 0, 0, 0, (JsVarInt)argCount, args));
         jsvUnLockMany(argCount, args);
         jsvStringIteratorAppendString(&dst, result, 0, (0x7FFFFFFF));
         jsvUnLock(result);
@@ -15644,7 +15688,7 @@ static JsVar *_jswrap_string_replace(JsVar *parent, JsVar *subStr, JsVar *newSub
   }
   newSubStr = jsvAsString(newSubStr);
   subStr = jsvAsString(subStr);
-  int idx = jswrap_string_indexOf(str, subStr, NULL, false);
+  int idx = jswrap_string_indexOf(str, subStr, NULL, 0);
   while (idx>=0 && !jspIsInterrupted()) {
     JsVar *newStr = jsvNewWritableStringFromStringVar(str, 0, (size_t)idx);
     jsvAppendStringVarComplete(newStr, newSubStr);
@@ -15653,7 +15697,7 @@ static JsVar *_jswrap_string_replace(JsVar *parent, JsVar *subStr, JsVar *newSub
     str = newStr;
     if (replaceAll) {
       JsVar *fromIdx = jsvNewFromInteger(idx + (int)jsvGetStringLength(newSubStr));
-      idx = jswrap_string_indexOf(str, subStr, fromIdx, false);
+      idx = jswrap_string_indexOf(str, subStr, fromIdx, 0);
       jsvUnLock(fromIdx);
     } else idx = -1;
   }
@@ -15661,10 +15705,10 @@ static JsVar *_jswrap_string_replace(JsVar *parent, JsVar *subStr, JsVar *newSub
   return str;
 }
 JsVar *jswrap_string_replace(JsVar *parent, JsVar *subStr, JsVar *newSubStr) {
-  return _jswrap_string_replace(parent, subStr, newSubStr, false);
+  return _jswrap_string_replace(parent, subStr, newSubStr, 0);
 }
 JsVar *jswrap_string_replaceAll(JsVar *parent, JsVar *subStr, JsVar *newSubStr) {
-  return _jswrap_string_replace(parent, subStr, newSubStr, true);
+  return _jswrap_string_replace(parent, subStr, newSubStr, 1);
 }
 JsVar *jswrap_string_substring(JsVar *parent, JsVarInt pStart, JsVar *vEnd) {
   JsVarInt pEnd = jsvIsUndefined(vEnd) ? (0x7FFFFFFF) : (int)jsvGetInteger(vEnd);
@@ -15729,7 +15773,7 @@ JsVar *jswrap_string_split(JsVar *parent, JsVar *split) {
   int l = (int)jsvGetStringLength(parent) + 1 - splitlen;
   for (idx=0;idx<=l;idx++) {
     if (splitlen==0 && idx==0) continue;
-    if (idx==l || splitlen==0 || jsvCompareString(parent, split, (size_t)idx, 0, true)==0) {
+    if (idx==l || splitlen==0 || jsvCompareString(parent, split, (size_t)idx, 0, 1)==0) {
       if (idx==l) {
         idx=l+splitlen;
         if (splitlen==0) break;
@@ -15744,7 +15788,7 @@ JsVar *jswrap_string_split(JsVar *parent, JsVar *split) {
   jsvUnLock(split);
   return array;
 }
-JsVar *jswrap_string_toUpperLowerCase(JsVar *parent, bool upper) {
+JsVar *jswrap_string_toUpperLowerCase(JsVar *parent, _Bool upper) {
   JsVar *res = jsvNewFromEmptyString();
   if (!res) return 0;
   JsVar *parentStr = jsvAsString(parent);
@@ -15762,7 +15806,7 @@ JsVar *jswrap_string_toUpperLowerCase(JsVar *parent, bool upper) {
   return res;
 }
 JsVar *jswrap_string_removeAccents(JsVar *parent) {
-  bool isLowerCase;
+  _Bool isLowerCase;
   JsVar *res = jsvNewFromEmptyString();
   if (!res) return 0;
   JsVar *parentStr = jsvAsString(parent);
@@ -15772,10 +15816,10 @@ JsVar *jswrap_string_removeAccents(JsVar *parent) {
   while (jsvStringIteratorHasChar(&itsrc)) {
     unsigned char ch = (unsigned char)jsvStringIteratorGetCharAndNext(&itsrc);
     if (ch >= 0xE0) {
-      isLowerCase = true;
+      isLowerCase = 1;
       ch -= 32;
     } else {
-      isLowerCase = false;
+      isLowerCase = 0;
     }
     if (ch >= 0xC0) {
       switch (ch) {
@@ -15840,7 +15884,7 @@ JsVar *jswrap_string_trim(JsVar *parent) {
   jsvStringIteratorNew(&it, s, 0);
   while (jsvStringIteratorHasChar(&it)) {
     size_t idx = jsvStringIteratorGetIndex(&it);
-    bool ws = isWhitespace(jsvStringIteratorGetCharAndNext(&it));
+    _Bool ws = isWhitespace(jsvStringIteratorGetCharAndNext(&it));
     if (!ws) {
       if (end<0) start = (unsigned int)idx;
       end = (int)idx;
@@ -15856,30 +15900,30 @@ JsVar *jswrap_string_trim(JsVar *parent) {
 JsVar *jswrap_string_concat(JsVar *parent, JsVar *args) {
   if (!jsvIsString(parent)) return 0;
   JsVar *str = jsvNewFromStringVarComplete(parent);
-  JsVar *extra = jsvArrayJoin(args, NULL , false );
+  JsVar *extra = jsvArrayJoin(args, NULL , 0 );
   jsvAppendStringVarComplete(str, extra);
   jsvUnLock(extra);
   return str;
 }
-bool jswrap_string_startsWith(JsVar *parent, JsVar *search, int position) {
-  if (!jsvIsString(parent)) return false;
+_Bool jswrap_string_startsWith(JsVar *parent, JsVar *search, int position) {
+  if (!jsvIsString(parent)) return 0;
   JsVar *searchStr = jsvAsString(search);
-  bool match = false;
+  _Bool match = 0;
   if (position >= 0 &&
       (int)jsvGetStringLength(searchStr)+position <= (int)jsvGetStringLength(parent))
-   match = jsvCompareString(parent, searchStr, (size_t)position,0,true)==0;
+   match = jsvCompareString(parent, searchStr, (size_t)position,0,1)==0;
   jsvUnLock(searchStr);
   return match;
 }
-bool jswrap_string_endsWith(JsVar *parent, JsVar *search, JsVar *length) {
-  if (!jsvIsString(parent)) return false;
+_Bool jswrap_string_endsWith(JsVar *parent, JsVar *search, JsVar *length) {
+  if (!jsvIsString(parent)) return 0;
   int position = jsvIsNumeric(length) ? jsvGetInteger(length) : (int)jsvGetStringLength(parent);
   JsVar *searchStr = jsvAsString(search);
   position -= (int)jsvGetStringLength(searchStr);
-  bool match = false;
+  _Bool match = 0;
   if (position >= 0 &&
       (int)jsvGetStringLength(searchStr)+position <= (int)jsvGetStringLength(parent))
-    match = jsvCompareString(parent, searchStr, (size_t)position,0,true)==0;
+    match = jsvCompareString(parent, searchStr, (size_t)position,0,1)==0;
   jsvUnLock(searchStr);
   return match;
 }
@@ -15893,7 +15937,7 @@ JsVar *jswrap_string_repeat(JsVar *parent, int count) {
     jsvAppendStringVarComplete(result, parent);
   return result;
 }
-JsVar *jswrap_string_padX(JsVar *str, int targetLength, JsVar *padString, bool padStart) {
+JsVar *jswrap_string_padX(JsVar *str, int targetLength, JsVar *padString, _Bool padStart) {
   if (!jsvIsString(str) || (int)jsvGetStringLength(str)>=targetLength)
     return jsvLockAgain(str);
   int padChars = targetLength - (int)jsvGetStringLength(str);
@@ -15962,7 +16006,7 @@ JsVar *jswrap_modules_getCached() {
   jsvObjectIteratorNew(&it, moduleList);
   while (jsvObjectIteratorHasValue(&it)) {
     JsVar *idx = jsvObjectIteratorGetKey(&it);
-    JsVar *idxCopy = jsvCopyNameOnly(idx, false, false);
+    JsVar *idxCopy = jsvCopyNameOnly(idx, 0, 0);
     jsvArrayPushAndUnLock(arr, idxCopy);
     jsvUnLock(idx);
     jsvObjectIteratorNext(&it);
@@ -15978,7 +16022,7 @@ void jswrap_modules_removeCached(JsVar *id) {
   }
   JsVar *moduleList = jswrap_modules_getModuleList();
   if (!moduleList) return;
-  JsVar *moduleExportName = jsvFindChildFromVar(moduleList, id, false);
+  JsVar *moduleExportName = jsvFindChildFromVar(moduleList, id, 0);
   if (!moduleExportName) {
     jsExceptionHere(JSET_ERROR, "Module %q not found", id);
   } else {
@@ -16009,7 +16053,7 @@ void jswrap_modules_addCached(JsVar *id, JsVar *sourceCode) {
   }
   jsvUnLock(moduleList);
 }
-static bool isNegativeZero(double x) {
+static _Bool isNegativeZero(double x) {
   double NEGATIVE_ZERO = -0.0;
   long long *NEGATIVE_ZERO_BITS = (long long*)&NEGATIVE_ZERO;
   long long *DOUBLE_BITS = (long long*)&x;
@@ -16099,7 +16143,7 @@ JsVarFloat jswrap_math_clip(JsVarFloat x, JsVarFloat min, JsVarFloat max) {
   if (x>max) x=max;
   return x;
 }
-JsVarFloat jswrap_math_minmax(JsVar *args, bool isMax) {
+JsVarFloat jswrap_math_minmax(JsVar *args, _Bool isMax) {
   JsVarFloat v = isMax ? -INFINITY : INFINITY;
   JsvObjectIterator it;
   jsvObjectIteratorNew(&it, args);

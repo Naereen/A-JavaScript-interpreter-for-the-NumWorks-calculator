@@ -3,7 +3,7 @@
 
 // A function around timing_msleep
 function msleep(s) {
-  if (Eadk.timing_msleep instanceof Function) {
+  if ('timing_msleep' in Eadk && typeof Eadk.timing_msleep === 'function' && Eadk.timing_msleep instanceof Function) {
     Eadk.timing_msleep(s);
   } else {
     // A bit hacky experimental: just a for loop, to sleep
@@ -15,7 +15,7 @@ function msleep(s) {
 
 console.log("Hello world from JavaScript!");
 console.log("Testing Eadk functions:");
-msleep(5000);
+msleep(2000);
 
 // Brightness
 
@@ -24,44 +24,44 @@ console.log("Eadk.backlight_brightness() =", Eadk.backlight_brightness());
 msleep(2000);
 
 // Iterate some times from full brightness to zero brightness
-const number_of_dwarfs = 3;
+const number_of_dwarfs = 5;
 for (let dwarf = 1; dwarf <= number_of_dwarfs; dwarf++) {
 
   // Let's go into the dark
   for (let b = brightness; b >= 0; b=b-16) {
-      Eadk.set_backlight_brightness(b);
+      Eadk.backlight_set_brightness(b);
       console.log("Eadk.backlight_brightness() =", Eadk.backlight_brightness());
       msleep(50);
   }
 
   // And back into the light!
   for (let b = 0; b <= brightness; b=b+16) {
-      Eadk.set_backlight_brightness(b);
+      Eadk.backlight_set_brightness(b);
       console.log("Eadk.backlight_brightness() =", Eadk.backlight_brightness());
       msleep(50);
   }
 }
 
-msleep(5000);
+msleep(2000);
 
 //
 // Let's test the constants SCREEN_WIDTH, SCREEN_HEIGHT
 //
 console.log("Eadk.SCREEN_WIDTH =", Eadk.SCREEN_WIDTH);
-msleep(5000);
+msleep(2000);
 console.log("Eadk.SCREEN_HEIGHT =", Eadk.SCREEN_HEIGHT);
-msleep(5000);
+msleep(2000);
 
 // FIXME: these functions seem to not be available in NumWorks' EADK library.
 //
 // Let's test the battery API
 //
 console.log("Eadk.battery_is_charging() =", Eadk.battery_is_charging());
-msleep(5000);
+msleep(2000);
 console.log("Eadk.battery_level() =", Eadk.battery_level());
-msleep(5000);
+msleep(2000);
 console.log("Eadk.battery_voltage() =", Eadk.battery_voltage());
-msleep(5000);
+msleep(2000);
 
 //
 // Display
@@ -94,31 +94,31 @@ msleep(5000);
 // Timing
 //
 
-// Let's test the function Eadk.timing_usleep(5000000)
-console.log("Eadk.timing_usleep(5000000)...");
-Eadk.timing_usleep(5000000);
+// Let's test the function Eadk.timing_usleep(2000000)
+console.log("Eadk.timing_usleep(2000000)...");
+Eadk.timing_usleep(2000000);
 
-// Let's test the function Eadk.timing_msleep(5000)
-console.log("Eadk.timing_msleep(5000)...");
-Eadk.timing_msleep(5000);
+// Let's test the function Eadk.timing_msleep(2000)
+console.log("Eadk.timing_msleep(2000)...");
+Eadk.timing_msleep(2000);
 
 // FIXME: these functions seem to not be available in NumWorks' EADK library.
 // Let's test the function Eadk.timing_millis()
 console.log("Eadk.timing_millis() =", Eadk.timing_millis());
-msleep(5000);
+msleep(2000);
 
 //
 // Misc
 //
 
 // FIXME: these functions seem to not be available in NumWorks' EADK library.
-// Let's test the function Eadk.eadk_usb_is_plugged()
-console.log("Eadk.eadk_usb_is_plugged() =", Eadk.eadk_usb_is_plugged());
-msleep(5000);
+// Let's test the function Eadk.usb_is_plugged()
+console.log("Eadk.usb_is_plugged() =", Eadk.usb_is_plugged());
+msleep(2000);
 
-// Let's test the function Eadk.eadk_random()
+// Let's test the function Eadk.random()
 for (let index = 0; index < 100; index++) {
-  console.log("Eadk.eadk_random() =", Eadk.eadk_random());
+  console.log("Eadk.random() =", Eadk.random());
   msleep(50);
 }
 

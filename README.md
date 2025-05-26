@@ -64,6 +64,11 @@ Copy the files you obtained to the `./src/javascript/` folder on this project (t
 
 Here is a short documentation for each function that I've ported from their interface in [`eadk.h`](https://github.com/numworks/epsilon/blob/master/eadk/include/eadk/eadk.h) to a working version in JavaScript.
 
+> *Legend:*
+> - ✅ = code written, function tested!
+> - ✅? = code written, function not yet working!
+> - ❌ = code written, function unavailable / or code not yet written!!
+
 ### ✅? Eadk predefined colors
 `Eadk.color_black`, `Eadk.color_white`, `Eadk.color_red`, `Eadk.color_green`, `Eadk.color_blue` are the five predefined colors.
 

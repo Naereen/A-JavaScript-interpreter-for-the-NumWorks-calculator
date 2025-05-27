@@ -10,16 +10,23 @@
 #include "storage.h"
 #include "espruino_embedded.h"
 
-// // https://yaya-cout.github.io/Nwagyu/reference/apps/syscalls.html
-// // FIXME: experimental use of svcall.h
-// #include "svcall.h"
+// https://yaya-cout.github.io/Nwagyu/reference/apps/syscalls.html
+// Experimental use of svcall.h
+#include "svcall.h"
 
-// void SVC_ATTRIBUTES setBlinking(uint16_t periodInMilliseconds,  float dutyCycle) {
-//   SVC_RETURNING_VOID(SVC_LED_SET_BLINKING)
-// }
+// led_set_blinking: control the LED
+// An external App cannot use the LED, but this is a good test to check that it doesn't work
+void SVC_ATTRIBUTES led_set_blinking(uint16_t periodInMilliseconds,  float dutyCycle) {
+  SVC_RETURNING_VOID(SVC_LED_SET_BLINKING)
+}
+
+// Like eadk_usb_is_plugged
+bool SVC_ATTRIBUTES usb_is_plugged() {
+  SVC_RETURNING_R0(SVC_USB_IS_PLUGGED, bool)
+}
 
 
-const char eadk_app_name[] __attribute__((section(".rodata.eadk_app_name"))) = "Espruino JavaScript";
+const char eadk_app_name[] __attribute__((section(".rodata.eadk_app_name"))) = "JavaScript";
 const uint32_t eadk_api_level  __attribute__((section(".rodata.eadk_api_level"))) = 0;
 
 // TODO: Check why __exidx_start/__exidx_end is needed
@@ -47,19 +54,16 @@ void ejs_print(const char *str) {
 // int main(int argc, char ** argv) {
 int main() {
 
-  printf("NumWorks's Embedded JavaScript interpreter v0.0.4\n");
+  printf("NumWorks's JavaScript interpreter v0.1\n");
   eadk_timing_msleep(1000);
   printf("Based on Espruino, by Naereen\n");
   eadk_timing_msleep(1000);
 
-  // SVC call to SVC_LED_SET_BLINKING = 36
-  // https://github.com/numworks/epsilon/blob/9072ab80a16d4c15222699f73896282a65eecd54/ion/src/device/shared/drivers/svcall.h#L82
-  // asm("svc 36");
-
+  // // An external App cannot use the LED, but this is a good test to check that it doesn't work
   // // https://github.com/numworks/epsilon/blob/9072ab80a16d4c15222699f73896282a65eecd54/ion/src/shared/exam_mode.cpp#L14
   // const uint16_t blinkPeriod = 1000;  // in ms
   // const float blinkDutyCycle = 0.1f;
-  // setBlinking(blinkPeriod, blinkDutyCycle);
+  // led_set_blinking(blinkPeriod, blinkDutyCycle);
 
   ejs_create(1000);
   struct ejs* ejs[1];
@@ -75,7 +79,7 @@ int main() {
   // DONE: I wasn't able to compile while depending on external data, but it works if reading from a local 'javascript.py' file.
   // const char * code = eadk_external_data;
 
-  const char * code = (code_from_file == NULL && file_len <= 0) ? "console.log(\"Hi from JavaScript interpreter! sleep(3s)\");\n Eadk.timing_msleep(3000);" : (code_from_file + 1);
+  const char * code = (code_from_file == NULL || file_len <= 0) ? "console.log(\"Hi from JavaScript interpreter! sleep(3s)\");\n Eadk.timing_msleep(3000);" : (code_from_file + 1);
 
   printf("Executing code...\n");
   eadk_timing_msleep(1000);
@@ -87,6 +91,9 @@ int main() {
   eadk_timing_msleep(3000);
   ejs_destroy_instance(ejs[0]);
   ejs_destroy();
+
+  printf("Quitting JavaScript interpreter...\n");
+  eadk_timing_msleep(1000);
 
   return 0;
 }

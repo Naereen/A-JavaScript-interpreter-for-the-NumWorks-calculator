@@ -64,6 +64,8 @@ Copy the files you obtained to the `./src/javascript/` folder on this project (t
 
 Here is a short documentation for each function that I've ported from their interface in [`eadk.h`](https://github.com/numworks/epsilon/blob/master/eadk/include/eadk/eadk.h) to a working version in JavaScript.
 
+I've exposed an `Eadk` module (see example in JavaScript below, or [here](https://github.com/Naereen/A-JavaScript-interpreter-for-the-NumWorks-calculator/issues/3#issuecomment-2910813161)), which comes ready with these functions and constants:
+
 > *Legend:*
 > - ✅ = code written, function tested!
 > - ✅? = code written, function not yet working!
@@ -72,7 +74,7 @@ Here is a short documentation for each function that I've ported from their inte
 ### ✅? Eadk predefined colors
 `Eadk.color_black`, `Eadk.color_white`, `Eadk.color_red`, `Eadk.color_green`, `Eadk.color_blue` are the five predefined colors.
 
-### ✅? Screen width and height
+### ✅ Screen width and height
 `Eadk.SCREEN_WIDTH` and `Eadk.SCREEN_HEIGHT` are the screen's width and height, respectively.
 
 ### ✅ Controlling the screen's brightness
@@ -85,31 +87,38 @@ Returns the screen's brightness, it's a 8 bits integer (`uint8_t` in C), ranging
 Sets the screen's brightness to this value.
 `brightness` **must** be an integer value which fits inside a `uint8_t`, between 0 and 256.
 
-### ❌ Accessing the Battery levels
+### ✅ Accessing the Battery levels
 
-#### ❌ `bool Eadk.battery_is_charging()`
+#### ✅ `bool Eadk.battery_is_charging()`
 
 Indicates whether the battery is charging.
 
-#### ❌ `uint8_t Eadk.battery_level()`
+#### ✅ `uint8_t Eadk.battery_level()`
 
 Returns a 8 bits integer giving the battery level.
 
-#### ❌ `float Eadk.battery_voltage()`
+#### ✅ `float Eadk.battery_voltage()`
 
 Returns a floating value of the battery voltage (in Volt, I guess?).
 
 > These functions are missing from the hardware!
 > See [this issue on NumWorks/epsilon's repository](https://github.com/numworks/epsilon/issues/2326)
-> TODO: [I could try to implement them myself, by SVC calls](https://github.com/Naereen/A-JavaScript-interpreter-for-the-NumWorks-calculator/issues/5)
+> DONE: [I just implemented them myself, by SVC calls](https://github.com/Naereen/A-JavaScript-interpreter-for-the-NumWorks-calculator/issues/5)
 
-### Display
+### ✅ Display
 
-#### ❌ `void Eadk.display_draw_string(const char* text, uint16_t x, uint16_t y, bool large_font, uint16_t text_color, uint16_t background_color)`
+#### ❌✅ `void Eadk.display_draw_string(const char* text, uint16_t x, uint16_t y, bool large_font, uint16_t text_color, uint16_t background_color)`
 
-TODO: I still haven't been able to define this one correctly, due to the `char* text` that I don't know how to declare in JSON (in the JSON to C process used by `jswrap_` to generate the corresponding C code).
+Displays a given `text` string, at a `{x,y}` position, in large/small font (`large_font`?), with the text in `text_color` and the background in `background_color`.
 
-### Timing
+For instance:
+```javascript
+Eadk.display_draw_string(text, x, y, large, text_color, background_color);
+```
+
+> TODO: it's still a bit buggy!
+
+### ✅ Timing
 
 #### ✅ `void Eadk.timing_usleep(uint32_t us)`
 
@@ -123,17 +132,17 @@ Sleep for `ms` micro-seconds
 
 Time since boot of the machine? Not clear. FIXME:
 
-### Miscellanious
+### ✅ Miscellanious
 
-#### ❌ `bool Eadk.usb_is_plugged()`
+#### ✅ `bool Eadk.usb_is_plugged()`
 
 Indicates whether the USB is plugged.
 
 > This function is missing from the hardware!
 > See [this issue on NumWorks/epsilon's repository](https://github.com/numworks/epsilon/issues/2326)
-> TODO: [I could try to implement it myself, by SVC calls](https://github.com/Naereen/A-JavaScript-interpreter-for-the-NumWorks-calculator/issues/5)
+> DONE: [I just implemented it myself, by SVC calls](https://github.com/Naereen/A-JavaScript-interpreter-for-the-NumWorks-calculator/issues/5)
 
-#### ✅? `uint32_t Eadk.random()`
+#### ✅ `uint32_t Eadk.random()`
 
 Returns an almost truly random number, generated from the hardware RNG (a uint32_t, unsigned 32 bits integer).
 

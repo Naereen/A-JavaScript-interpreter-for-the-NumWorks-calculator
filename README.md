@@ -105,18 +105,40 @@ Returns a floating value of the battery voltage (in Volt, I guess?).
 > See [this issue on NumWorks/epsilon's repository](https://github.com/numworks/epsilon/issues/2326)
 > DONE: [I just implemented them myself, by SVC calls](https://github.com/Naereen/A-JavaScript-interpreter-for-the-NumWorks-calculator/issues/5)
 
-### ✅ Display
+### ❌✅ Display
 
 #### ❌✅ `void Eadk.display_draw_string(const char* text, uint16_t x, uint16_t y, bool large_font, uint16_t text_color, uint16_t background_color)`
 
 Displays a given `text` string, at a `{x,y}` position, in large/small font (`large_font`?), with the text in `text_color` and the background in `background_color`.
 
-For instance:
 ```javascript
 Eadk.display_draw_string(text, x, y, large, text_color, background_color);
 ```
 
 > TODO: it's still a bit buggy!
+
+#### ✅ `void Eadk.display_push_rect_uniform(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint16_t color)`
+
+Fills a rectangle on the display with a uniform color.
+This can also be used to draw a single pixel by setting width and height to 1.
+
+- `x`: X coordinate of the top-left corner,
+- `y`: Y coordinate of the top-left corner,
+- `width`: Width of the rectangle,
+- `height`: Height of the rectangle,
+- `color`: Color of the rectangle (e.g., `0xFFFF` for white, `0xF800` for red).
+
+For instance:
+```javascript
+Eadk.display_push_rect_uniform(0, 0, 10, 20, 0xF800); // Fills a 10x20 red rectangle at (0,0)
+Eadk.display_push_rect_uniform(50, 50, 1, 1, 0x07E0); // Draws a single green pixel at (50,50)
+```
+
+#### Missing funtions
+
+- `eadk_display_push_rect`: is missing.
+- `eadk_display_pull_rect`: is missing.
+- `eadk_display_wait_for_vblank`: is missing.
 
 ### ✅ Timing
 
@@ -164,8 +186,8 @@ For a more complete and length example, see [`src/test.js`](src/test.js).
 // Save this to `javascript.py` on your NumWorks, and run it with
 // the "JS interpreter" NumWorks application!
 
-console.log("Hello world from JavaScript!");
-console.log("Testing Eadk functions:");
+console.log("Hello world from JavaScript!\n");
+console.log("Testing some Eadk functions:\n");
 Eadk.timing_msleep(5000);
 
 const brightness = Eadk.backlight_brightness();

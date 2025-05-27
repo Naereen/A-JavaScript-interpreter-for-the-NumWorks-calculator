@@ -14,7 +14,7 @@ function msleep(s) {
 }
 
 console.log("Hello world from JavaScript!");
-console.log("Testing Eadk functions:");
+console.log("Testing all Eadk functions:");
 msleep(1000);
 
 //
@@ -44,6 +44,22 @@ msleep(1000);
 Eadk.display_draw_string("Hello in blue on black ?", 0, 16*6, small_text, Eadk.color_blue, Eadk.color_black);
 msleep(1000);
 Eadk.display_draw_string("Hello in white on black ?", 0, 16*7, small_text, Eadk.color_white, Eadk.color_black);
+msleep(1000);
+
+// Display rect
+console.log("Eadk.display_push_rect_uniform(0, 0, 10, 20, 0xF800)...");
+msleep(1000);
+Eadk.display_push_rect_uniform(190, 190, 10, 20, 0xF800); // Fills a 10x20 red rectangle at (190,190)
+msleep(1000);
+
+console.log("Eadk.display_push_rect_uniform for lines...");
+msleep(1000);
+// Draws a line of single green pixels at (50,50) to (150,150)
+for (let line = 50; line < 150; line++) {
+  Eadk.display_push_rect_uniform(line, line, 1, 1, 0x07E0);
+  msleep(10);
+}
+
 msleep(1000);
 
 // Brightness
@@ -95,12 +111,12 @@ msleep(1000);
 // Timing
 //
 
-// Let's test the function Eadk.timing_usleep(2000000)
-console.log("Eadk.timing_usleep(2000000)...");
-Eadk.timing_usleep(2000000);
+// Let's test the function Eadk.timing_usleep(1000000)
+console.log("Eadk.timing_usleep(1000000)...");
+Eadk.timing_usleep(1000000);
 
-// Let's test the function Eadk.timing_msleep(2000)
-console.log("Eadk.timing_msleep(2000)...");
+// Let's test the function Eadk.timing_msleep(1000)
+console.log("Eadk.timing_msleep(1000)...");
 Eadk.timing_msleep(1000);
 
 // Let's test the function Eadk.timing_millis()

@@ -194,7 +194,7 @@ const brightness = Eadk.backlight_brightness();
 console.log("Eadk.backlight_brightness() =", Eadk.backlight_brightness());
 Eadk.timing_msleep(2000);
 
-for (let dwarf = 1; dwarf <= 13; dwarf++) {
+for (let a = 1; a <= 10; a++) {
     for (let b = brightness; b >= 0; b=b-16) {
         Eadk.set_backlight_brightness(b);
         console.log("Eadk.backlight_brightness() =", Eadk.backlight_brightness());

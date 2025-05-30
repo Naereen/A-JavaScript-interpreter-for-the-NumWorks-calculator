@@ -12559,14 +12559,14 @@ void jswrap_display_push_rect_uniform(JsVar *args) {
         return;
     }
     JsVar *xJsVar = jsvGetArrayItem(args, 0);
-    uint16_t x = (uint16_t) 0;
+    uint16_t x = (uint16_t) 1;
     if (!jsvIsInt(xJsVar)) {
         printf("Eadk.display_fill_rect: Arg[0] (x) must be integer.");
     } else {
         x = (uint16_t)jsvGetInteger(xJsVar);
     }
     JsVar *yJsVar = jsvGetArrayItem(args, 1);
-    uint16_t y = (uint16_t) 0;
+    uint16_t y = (uint16_t) 1;
     if (!jsvIsInt(yJsVar)) {
         printf("Eadk.display_fill_rect: Arg[1] (y) must be integer.");
     } else {

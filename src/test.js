@@ -22,12 +22,6 @@ msleep(500);
 // Display
 //
 
-// Display rect
-console.log("Eadk.display_push_rect_uniform(0, 0, 10, 20, 0xF800)...");
-msleep(1000);
-Eadk.display_push_rect_uniform(190, 190, 10, 20, Eadk.color_red); // Fills a 10x20 red rectangle at (190,190)
-msleep(1000);
-
 // Let's test the colors and display_draw_string
 // First display on white background, and big text
 const big_text   = 1; // 1 for big text
@@ -51,16 +45,6 @@ msleep(1000);
 Eadk.display_draw_string("Hello in blue on black ?", 0, 16*3+1+14*3, small_text, Eadk.color_blue, Eadk.color_black);
 msleep(1000);
 Eadk.display_draw_string("Hello in white on black ?", 0, 16*3+1+14*4, small_text, Eadk.color_white, Eadk.color_black);
-msleep(1000);
-
-console.log("Eadk.display_push_rect_uniform for lines...");
-msleep(1000);
-// Draws a line of single green line of pixels at (0,0) to (151,151)
-for (let line = 0; line <= 151; line++) {
-  const i = line | 0; // Convert to integer
-  Eadk.display_push_rect_uniform(i, i, 1, 1, Eadk.color_green);
-  msleep(10);
-}
 msleep(1000);
 
 //
@@ -139,6 +123,25 @@ for (let index = 0; index < 100; index++) {
   console.log("Eadk.random() =", Eadk.random());
   msleep(50);
 }
+
+//
+// Display rect and lines
+//
+
+// Display rect
+console.log("Eadk.display_push_rect_uniform(0, 0, 10, 20, Eadk.color_red)...");
+msleep(1000);
+Eadk.display_push_rect_uniform(190, 190, 10, 20, Eadk.color_red); // Fills a 10x20 red rectangle at (190,190)
+msleep(1000);
+
+console.log("Eadk.display_push_rect_uniform for lines...");
+msleep(1000);
+// Draws a line of single green line of pixels at (1,1) to (151,151)
+for (let line = 1; line <= 151; line++) {
+  Eadk.display_push_rect_uniform(line, line, 1, 1, Eadk.color_green);
+  msleep(10);
+}
+msleep(1000);
 
 //
 // Finish for this test script

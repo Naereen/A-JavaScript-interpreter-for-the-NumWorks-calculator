@@ -10225,16 +10225,17 @@ int32_t jswrap_SCREEN_WIDTH(void);
 int32_t jswrap_SCREEN_HEIGHT(void);
 int jswrap_backlight_brightness(void);
 void jswrap_backlight_set_brightness(int brightness);
-_Bool jswrap_battery_is_charging();
-uint8_t jswrap_battery_level();
-float jswrap_battery_voltage();
+_Bool jswrap_battery_is_charging(void);
+uint8_t jswrap_battery_level(void);
+float jswrap_battery_voltage(void);
 void jswrap_display_draw_string(JsVar *args);
 void jswrap_display_push_rect_uniform(JsVar *args);
+_Bool jswrap_display_wait_for_vblank(void);
 void jswrap_timing_usleep(uint32_t us);
 void jswrap_timing_msleep(uint32_t ms);
-uint64_t jswrap_timing_millis();
-_Bool jswrap_usb_is_plugged();
-uint32_t jswrap_random();
+uint64_t jswrap_timing_millis(void);
+_Bool jswrap_usb_is_plugged(void);
+uint32_t jswrap_random(void);
 JsVar *jswrap_array_constructor(JsVar *args);
 _Bool jswrap_array_contains(JsVar *parent, JsVar *value);
 JsVar *jswrap_array_indexOf(JsVar *parent, JsVar *value, JsVarInt startIdx);
@@ -10576,11 +10577,12 @@ static const JswSymPtr jswSymbols_Eadk[] = {
   { 168, JSWAT_INT32 | JSWAT_EXECUTE_IMMEDIATELY, (void*)jswrap_color_white},
   { 180, JSWAT_VOID | (JSWAT_ARGUMENT_ARRAY << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_display_draw_string},
   { 200, JSWAT_VOID | (JSWAT_ARGUMENT_ARRAY << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_display_push_rect_uniform},
-  { 226, JSWAT_INT32, (void*)jswrap_random},
-  { 233, JSWAT_INT32, (void*)jswrap_timing_millis},
-  { 247, JSWAT_VOID | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_timing_msleep},
-  { 261, JSWAT_VOID | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_timing_usleep},
-  { 275, JSWAT_BOOL, (void*)jswrap_usb_is_plugged}
+  { 226, JSWAT_BOOL, (void*)jswrap_display_wait_for_vblank},
+  { 250, JSWAT_INT32, (void*)jswrap_random},
+  { 257, JSWAT_INT32, (void*)jswrap_timing_millis},
+  { 271, JSWAT_VOID | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_timing_msleep},
+  { 285, JSWAT_VOID | (JSWAT_INT32 << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_timing_usleep},
+  { 299, JSWAT_BOOL, (void*)jswrap_usb_is_plugged}
 };
 static const unsigned char jswSymbolIndex_Eadk = 0;
 static const JswSymPtr jswSymbols_global[] = {
@@ -10902,7 +10904,7 @@ static const JswSymPtr jswSymbols_heatshrink[] = {
   { 9, JSWAT_JSVAR | (JSWAT_JSVAR << ((((JSWAT_MASK+1)== 1)? 0: ((JSWAT_MASK+1)== 2)? 1: ((JSWAT_MASK+1)== 4)? 2: ((JSWAT_MASK+1)== 8)? 3: ((JSWAT_MASK+1)== 16)? 4: ((JSWAT_MASK+1)== 32)? 5: ((JSWAT_MASK+1)== 64)? 6: ((JSWAT_MASK+1)== 128)? 7: ((JSWAT_MASK+1)== 256)? 8: ((JSWAT_MASK+1)== 512)? 9: ((JSWAT_MASK+1)== 1024)?10: ((JSWAT_MASK+1)== 2048)?11: ((JSWAT_MASK+1)== 4096)?12: ((JSWAT_MASK+1)== 8192)?13: ((JSWAT_MASK+1)==16384)?14: ((JSWAT_MASK+1)==32768)?15:10000 )*1)), (void*)jswrap_heatshrink_decompress}
 };
 static const unsigned char jswSymbolIndex_heatshrink = 26;
-static const char jswSymbols_Eadk_str[] = "SCREEN_HEIGHT\0SCREEN_WIDTH\0backlight_brightness\0backlight_set_brightness\0battery_is_charging\0battery_level\0battery_voltage\0color_black\0color_blue\0color_green\0color_red\0color_white\0display_draw_string\0display_push_rect_uniform\0random\0timing_millis\0timing_msleep\0timing_usleep\0usb_is_plugged\0";
+static const char jswSymbols_Eadk_str[] = "SCREEN_HEIGHT\0SCREEN_WIDTH\0backlight_brightness\0backlight_set_brightness\0battery_is_charging\0battery_level\0battery_voltage\0color_black\0color_blue\0color_green\0color_red\0color_white\0display_draw_string\0display_push_rect_uniform\0display_wait_for_vblank\0random\0timing_millis\0timing_msleep\0timing_usleep\0usb_is_plugged\0";
 static const char jswSymbols_global_str[] = "Array\0ArrayBuffer\0ArrayBufferView\0Boolean\0DataView\0Date\0Eadk\0Error\0Float32Array\0Float64Array\0Function\0HIGH\0Infinity\0Int16Array\0Int32Array\0Int8Array\0InternalError\0JSON\0LOW\0Math\0Modules\0NaN\0Number\0Object\0ReferenceError\0RegExp\0String\0SyntaxError\0TypeError\0Uint16Array\0Uint24Array\0Uint32Array\0Uint8Array\0Uint8ClampedArray\0arguments\0atob\0btoa\0console\0decodeURIComponent\0encodeURIComponent\0eval\0global\0globalThis\0isFinite\0isNaN\0parseFloat\0parseInt\0print\0require\0trace\0";
 static const char jswSymbols_Array_proto_str[] = "concat\0every\0fill\0filter\0find\0findIndex\0forEach\0includes\0indexOf\0join\0length\0map\0pop\0push\0reduce\0reverse\0shift\0slice\0some\0sort\0splice\0toString\0unshift\0";
 static const char jswSymbols_Array_str[] = "isArray\0";
@@ -10930,7 +10932,7 @@ static const char jswSymbols_Modules_str[] = "addCached\0getCached\0removeAllCac
 static const char jswSymbols_Math_str[] = "E\0LN10\0LN2\0LOG10E\0LOG2E\0PI\0SQRT1_2\0SQRT2\0abs\0acos\0asin\0atan\0atan2\0ceil\0clip\0cos\0exp\0floor\0log\0max\0min\0pow\0randInt\0random\0round\0sign\0sin\0sqrt\0tan\0wrap\0";
 static const char jswSymbols_heatshrink_str[] = "compress\0decompress\0";
 const JswSymList jswSymbolTables[] = {
-  {jswSymbols_Eadk, jswSymbols_Eadk_str, 19},
+  {jswSymbols_Eadk, jswSymbols_Eadk_str, 20},
   {jswSymbols_global, jswSymbols_global_str, 50},
   {jswSymbols_Array_proto, jswSymbols_Array_proto_str, 23},
   {jswSymbols_Array, jswSymbols_Array_str, 1},
@@ -12448,16 +12450,17 @@ int32_t jswrap_SCREEN_WIDTH(void);
 int32_t jswrap_SCREEN_HEIGHT(void);
 int jswrap_backlight_brightness(void);
 void jswrap_backlight_set_brightness(int brightness);
-_Bool jswrap_battery_is_charging();
-uint8_t jswrap_battery_level();
-float jswrap_battery_voltage();
+_Bool jswrap_battery_is_charging(void);
+uint8_t jswrap_battery_level(void);
+float jswrap_battery_voltage(void);
 void jswrap_display_draw_string(JsVar *args);
 void jswrap_display_push_rect_uniform(JsVar *args);
+_Bool jswrap_display_wait_for_vblank(void);
 void jswrap_timing_usleep(uint32_t us);
 void jswrap_timing_msleep(uint32_t ms);
-uint64_t jswrap_timing_millis();
-_Bool jswrap_usb_is_plugged();
-uint32_t jswrap_random();
+uint64_t jswrap_timing_millis(void);
+_Bool jswrap_usb_is_plugged(void);
+uint32_t jswrap_random(void);
 int16_t jswrap_color_black(void) {
     return 0x0;
 }
@@ -12500,42 +12503,52 @@ void jswrap_display_draw_string(JsVar *args) {
     if (argc < 6) {
         return;
     }
-    JsVar *textJsVar = jsvGetArrayItem(args, 0);
-    if (!jsvIsString(textJsVar)) {
-        jsError("Eadk.display_draw_string: Arg[0] (text) must be a string.");
-        return;
-    }
-    const char* text = jsvAsString(textJsVar);
     JsVar *xJsVar = jsvGetArrayItem(args, 1);
     if (!jsvIsInt(xJsVar)) {
-        jsError("Eadk.display_draw_string: Arg[1] (x) must be an integer.");
+        jsError("Eadk.display_draw_string: Arg[1] (x) must be integer.");
         return;
     }
     uint16_t x = (uint16_t)jsvGetInteger(xJsVar);
     JsVar *yJsVar = jsvGetArrayItem(args, 2);
     if (!jsvIsInt(yJsVar)) {
-        jsError("Eadk.display_draw_string: Arg[2] (y) must be an integer.");
+        jsError("Eadk.display_draw_string: Arg[2] (y) must be integer.");
         return;
     }
     uint16_t y = (uint16_t)jsvGetInteger(yJsVar);
     JsVar *large_fontJsVar = jsvGetArrayItem(args, 3);
     if (!jsvIsInt(large_fontJsVar)) {
-        jsError("Eadk.display_draw_string: Arg[3] (large_font) must be an integer.");
+        jsError("Eadk.display_draw_string: Arg[3] (large_font) must be integer.");
         return;
     }
     _Bool large_font = jsvGetBool(large_fontJsVar);
     JsVar *text_colorJsVar = jsvGetArrayItem(args, 4);
     if (!jsvIsInt(text_colorJsVar)) {
-        jsError("Eadk.display_draw_string: Arg[4] (text_color) must be an integer.");
+        jsError("Eadk.display_draw_string: Arg[4] (text_color) must be integer.");
         return;
     }
     uint16_t text_color = (uint16_t)jsvGetInteger(text_colorJsVar);
     JsVar *background_colorJsVar = jsvGetArrayItem(args, 5);
     if (!jsvIsInt(background_colorJsVar)) {
-        jsError("Eadk.display_draw_string: Arg[5] (background_color) must be an integer.");
+        jsError("Eadk.display_draw_string: Arg[5] (background_color) must be integer.");
         return;
     }
     uint16_t background_color = (uint16_t)jsvGetInteger(background_colorJsVar);
+    JsVar *textJsVar = jsvGetArrayItem(args, 0);
+    if (!jsvIsString(textJsVar)) {
+        printf("Eadk.display_draw_string: Arg[0] (text) must be a string.");
+        return;
+    }
+    size_t max_len = 31;
+    if (large_font == 0) {
+        max_len = 63;
+    }
+    char text[max_len + 1];
+    size_t len_of_text = jsvGetStringChars(textJsVar, 0, text, max_len);
+    text[len_of_text] = '\0';
+    if (len_of_text >= max_len) {
+        printf("Eadk.display_draw_string: Arg[0] too long, %i >= max %i characters.", len_of_text, max_len);
+        return;
+    }
     eadk_display_draw_string(text, (eadk_point_t){x, y}, large_font, (eadk_color_t)text_color, (eadk_color_t)background_color);
     return;
 }
@@ -12546,38 +12559,46 @@ void jswrap_display_push_rect_uniform(JsVar *args) {
         return;
     }
     JsVar *xJsVar = jsvGetArrayItem(args, 0);
+    uint16_t x = (uint16_t) 0;
     if (!jsvIsInt(xJsVar)) {
-        jsError("Eadk.display_fill_rect: Arg[0] (x) must be an integer.");
-        return;
+        printf("Eadk.display_fill_rect: Arg[0] (x) must be integer.");
+    } else {
+        x = (uint16_t)jsvGetInteger(xJsVar);
     }
-    uint16_t x = (uint16_t)jsvGetInteger(xJsVar);
     JsVar *yJsVar = jsvGetArrayItem(args, 1);
+    uint16_t y = (uint16_t) 0;
     if (!jsvIsInt(yJsVar)) {
-        jsError("Eadk.display_fill_rect: Arg[1] (y) must be an integer.");
-        return;
+        printf("Eadk.display_fill_rect: Arg[1] (y) must be integer.");
+    } else {
+        y = (uint16_t)jsvGetInteger(yJsVar);
     }
-    uint16_t y = (uint16_t)jsvGetInteger(yJsVar);
     JsVar *widthJsVar = jsvGetArrayItem(args, 2);
+    uint16_t width = (uint16_t) 1;
     if (!jsvIsInt(widthJsVar)) {
-        jsError("Eadk.display_fill_rect: Arg[2] (width) must be an integer.");
-        return;
+        printf("Eadk.display_fill_rect: Arg[2] (width) must be integer.");
+    } else {
+        width = (uint16_t)jsvGetInteger(widthJsVar);
     }
-    uint16_t width = (uint16_t)jsvGetInteger(widthJsVar);
     JsVar *heightJsVar = jsvGetArrayItem(args, 3);
+    uint16_t height = (uint16_t) 1;
     if (!jsvIsInt(heightJsVar)) {
-        jsError("Eadk.display_fill_rect: Arg[3] (height) must be an integer.");
-        return;
+        printf("Eadk.display_fill_rect: Arg[3] (height) must be integer.");
+    } else {
+        height = (uint16_t)jsvGetInteger(heightJsVar);
     }
-    uint16_t height = (uint16_t)jsvGetInteger(heightJsVar);
     JsVar *colorJsVar = jsvGetArrayItem(args, 4);
+    uint16_t color = (uint16_t) eadk_color_black;
     if (!jsvIsInt(colorJsVar)) {
-        jsError("Eadk.display_fill_rect: Arg[4] (color) must be an integer.");
-        return;
+        printf("Eadk.display_fill_rect: Arg[4] (color) must be integer.\n");
+    } else {
+        color = (uint16_t)jsvGetInteger(colorJsVar);
     }
-    uint16_t color = (uint16_t)jsvGetInteger(colorJsVar);
     eadk_rect_t rect = { .x = x, .y = y, .width = width, .height = height };
     eadk_display_push_rect_uniform(rect, (eadk_color_t)color);
     return;
+}
+_Bool jswrap_display_wait_for_vblank(void) {
+    return eadk_display_wait_for_vblank();
 }
 void jswrap_timing_usleep(uint32_t us) {
     return eadk_timing_usleep(us);
@@ -12585,14 +12606,14 @@ void jswrap_timing_usleep(uint32_t us) {
 void jswrap_timing_msleep(uint32_t ms) {
     return eadk_timing_msleep(ms);
 }
-uint64_t jswrap_timing_millis() {
+uint64_t jswrap_timing_millis(void) {
     return eadk_timing_millis();
 }
-_Bool jswrap_usb_is_plugged() {
+_Bool jswrap_usb_is_plugged(void) {
     _Bool returnValue; __asm__ volatile("svc %[immediate] ; mov %[returnValue], r0" : [returnValue] "=r"(returnValue) : [immediate] "I"(52) : "r0", "r1", "r2", "r3"); return returnValue;
 }
-uint32_t jswrap_random() {
-    return eadk_random();
+uint32_t jswrap_random(void) {
+    return (uint32_t) eadk_random();
 }
 JsVar *jswrap_array_constructor(JsVar *args) {
   do { } while(0);

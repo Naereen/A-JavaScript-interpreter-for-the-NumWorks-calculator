@@ -2,24 +2,31 @@
 // This is a JavaScript file!
 
 // A function around timing_msleep
-function msleep(s) {
+function msleep(ms) {
   if ('timing_msleep' in Eadk && typeof Eadk.timing_msleep === 'function' && Eadk.timing_msleep instanceof Function) {
-    Eadk.timing_msleep(s);
+    Eadk.timing_msleep(ms);
   } else {
     // A bit hacky experimental: just a for loop, to sleep
-      for (let j = 1; j <= s; j++) {
+      for (let j = 1; j <= ms; j++) {
           // Just a comment here
       }
   }
 }
 
 console.log("Hello world from JavaScript!");
+msleep(500);
 console.log("Testing all Eadk functions:");
-msleep(1000);
+msleep(500);
 
 //
 // Display
 //
+
+// Display rect
+console.log("Eadk.display_push_rect_uniform(0, 0, 10, 20, 0xF800)...");
+msleep(1000);
+Eadk.display_push_rect_uniform(190, 190, 10, 20, Eadk.color_red); // Fills a 10x20 red rectangle at (190,190)
+msleep(1000);
 
 // Let's test the colors and display_draw_string
 // First display on white background, and big text
@@ -33,44 +40,40 @@ msleep(1000);
 Eadk.display_draw_string("Hello in black on white ?", 0, 16*3, big_text, Eadk.color_black, Eadk.color_white);
 msleep(1000);
 
-msleep(5000);
+msleep(2000);
 
 // Then display on black background, and small text
 const small_text = 0; // 0 for small text
-Eadk.display_draw_string("Hello in red on black ?", 0, 16*4, small_text, Eadk.color_red, Eadk.color_black);
+Eadk.display_draw_string("Hello in red on black ?", 0, 16*3+1+14*1, small_text, Eadk.color_red, Eadk.color_black);
 msleep(1000);
-Eadk.display_draw_string("Hello in green on black ?", 0, 16*5, small_text, Eadk.color_green, Eadk.color_black);
+Eadk.display_draw_string("Hello in green on black ?", 0, 16*3+1+14*2, small_text, Eadk.color_green, Eadk.color_black);
 msleep(1000);
-Eadk.display_draw_string("Hello in blue on black ?", 0, 16*6, small_text, Eadk.color_blue, Eadk.color_black);
+Eadk.display_draw_string("Hello in blue on black ?", 0, 16*3+1+14*3, small_text, Eadk.color_blue, Eadk.color_black);
 msleep(1000);
-Eadk.display_draw_string("Hello in white on black ?", 0, 16*7, small_text, Eadk.color_white, Eadk.color_black);
-msleep(1000);
-
-// Display rect
-console.log("Eadk.display_push_rect_uniform(0, 0, 10, 20, 0xF800)...");
-msleep(1000);
-Eadk.display_push_rect_uniform(190, 190, 10, 20, 0xF800); // Fills a 10x20 red rectangle at (190,190)
+Eadk.display_draw_string("Hello in white on black ?", 0, 16*3+1+14*4, small_text, Eadk.color_white, Eadk.color_black);
 msleep(1000);
 
 console.log("Eadk.display_push_rect_uniform for lines...");
 msleep(1000);
-// Draws a line of single green pixels at (50,50) to (150,150)
-for (let line = 50; line < 150; line++) {
-  Eadk.display_push_rect_uniform(line, line, 1, 1, 0x07E0);
+// Draws a line of single green line of pixels at (0,0) to (151,151)
+for (let line = 0; line <= 151; line++) {
+  const i = line | 0; // Convert to integer
+  Eadk.display_push_rect_uniform(i, i, 1, 1, Eadk.color_green);
   msleep(10);
 }
-
 msleep(1000);
 
+//
 // Brightness
+//
 
 const brightness = Eadk.backlight_brightness();
 console.log("Eadk.backlight_brightness() =", Eadk.backlight_brightness());
 msleep(1000);
 
 // Iterate some times from full brightness to zero brightness
-const number_of_dwarfs = 5;
-for (let dwarf = 1; dwarf <= number_of_dwarfs; dwarf++) {
+const number_of_brightness_iterations = 5;
+for (let a = 1; a <= number_of_brightness_iterations; a++) {
 
   // Let's go into the dark
   for (let b = brightness; b >= 0; b=b-16) {

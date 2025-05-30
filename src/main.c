@@ -10,23 +10,7 @@
 #include "storage.h"
 #include "espruino_embedded.h"
 
-// https://yaya-cout.github.io/Nwagyu/reference/apps/syscalls.html
-// Experimental use of svcall.h
-#include "svcall.h"
-
-// led_set_blinking: control the LED
-// An external App cannot use the LED, but this is a good test to check that it doesn't work
-void SVC_ATTRIBUTES led_set_blinking(uint16_t periodInMilliseconds,  float dutyCycle) {
-  SVC_RETURNING_VOID(SVC_LED_SET_BLINKING)
-}
-
-// Like eadk_usb_is_plugged
-bool SVC_ATTRIBUTES usb_is_plugged() {
-  SVC_RETURNING_R0(SVC_USB_IS_PLUGGED, bool)
-}
-
-
-const char eadk_app_name[] __attribute__((section(".rodata.eadk_app_name"))) = "JavaScript";
+const char eadk_app_name[] __attribute__((section(".rodata.eadk_app_name"))) = "JavaScript v0.2";
 const uint32_t eadk_api_level  __attribute__((section(".rodata.eadk_api_level"))) = 0;
 
 // TODO: Check why __exidx_start/__exidx_end is needed
@@ -54,22 +38,19 @@ void ejs_print(const char *str) {
 // int main(int argc, char ** argv) {
 int main() {
 
-  printf("NumWorks's JavaScript interpreter v0.1\n");
-  eadk_timing_msleep(1000);
-  printf("Based on Espruino, by Naereen\n");
-  eadk_timing_msleep(1000);
+  // Clear the screen, to start with a clean screen
+  eadk_display_push_rect_uniform(eadk_screen_rect, eadk_color_white);
 
-  // // An external App cannot use the LED, but this is a good test to check that it doesn't work
-  // // https://github.com/numworks/epsilon/blob/9072ab80a16d4c15222699f73896282a65eecd54/ion/src/shared/exam_mode.cpp#L14
-  // const uint16_t blinkPeriod = 1000;  // in ms
-  // const float blinkDutyCycle = 0.1f;
-  // led_set_blinking(blinkPeriod, blinkDutyCycle);
+  eadk_display_draw_string("NumWorks's JavaScript interpreter v0.2\n", (eadk_point_t){0, 16*0}, false, eadk_color_black, eadk_color_white);
+  eadk_timing_msleep(1000);
+  eadk_display_draw_string("Based on Espruino, by @Naereen\n", (eadk_point_t){0, 16*1}, false, eadk_color_black, eadk_color_white);
+  eadk_timing_msleep(1000);
 
   ejs_create(1000);
   struct ejs* ejs[1];
   ejs[0] = ejs_create_instance();
 
-  printf("Reading from 'javascript.py' file...\n");
+  eadk_display_draw_string("Reading from 'javascript.py' file...\n", (eadk_point_t){0, 16*2}, false, eadk_color_black, eadk_color_white);
   eadk_timing_msleep(1000);
 
   // We read "javascript.py"
@@ -81,11 +62,13 @@ int main() {
 
   const char * code = (code_from_file == NULL || file_len <= 0) ? "console.log(\"Hi from JavaScript interpreter! sleep(3s)\");\n Eadk.timing_msleep(3000);" : (code_from_file + 1);
 
-  printf("Executing code...\n");
-  eadk_timing_msleep(1000);
+  eadk_display_draw_string("Executing code...\n", (eadk_point_t){0, 16*3}, false, eadk_color_black, eadk_color_white);
+  eadk_timing_msleep(500);
+  printf("(Length of code to execute = %i)\n", strlen(code));
+  eadk_timing_msleep(500);
 
   JsVar *v = ejs_exec(ejs[0], code, false);
-  jsiConsolePrintf("=%v\n", v);
+  jsiConsolePrintf("Returns = %v\n", v);
   jsvUnLock(v);
 
   eadk_timing_msleep(3000);
@@ -95,5 +78,5 @@ int main() {
   printf("Quitting JavaScript interpreter...\n");
   eadk_timing_msleep(1000);
 
-  return 0;
+  return EXIT_SUCCESS;
 }

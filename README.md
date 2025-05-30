@@ -116,6 +116,7 @@ Eadk.display_draw_string(text, x, y, large, text_color, background_color);
 ```
 
 > TODO: it's still a bit buggy!
+> See [this issue](https://github.com/Naereen/A-JavaScript-interpreter-for-the-NumWorks-calculator/issues/1#issuecomment-2910837059)
 
 #### ✅ `void Eadk.display_push_rect_uniform(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint16_t color)`
 
@@ -134,11 +135,14 @@ Eadk.display_push_rect_uniform(0, 0, 10, 20, 0xF800); // Fills a 10x20 red recta
 Eadk.display_push_rect_uniform(50, 50, 1, 1, 0x07E0); // Draws a single green pixel at (50,50)
 ```
 
-#### Missing funtions
+#### ✅ `bool Eadk.display_wait_for_vblank(void)`
 
-- `eadk_display_push_rect`: is missing.
-- `eadk_display_pull_rect`: is missing.
-- `eadk_display_wait_for_vblank`: is missing.
+Display: wait for vblank? It is not documented in eadk.h so not documented here (we don't really know what it does)
+
+#### ❌ Missing funtions
+
+- `Eadk.display_push_rect`: is missing.
+- `Eadk.display_pull_rect`: is missing.
 
 ### ✅ Timing
 
@@ -178,7 +182,7 @@ The functions already present should give a good direction to follow!
 
 ## Example of a tiny JavaScript test file
 
-The example below runs now correctly and showcases a decreasing then increasing brightness, with small pauses between every change:
+The example below runs now correctly and showcases a few iterations of decrease then increase in brightness, with small pauses between every change:
 
 For a more complete and length example, see [`src/test.js`](src/test.js).
 

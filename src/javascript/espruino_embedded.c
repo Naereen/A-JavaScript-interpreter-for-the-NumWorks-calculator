@@ -12501,35 +12501,36 @@ float jswrap_battery_voltage(void) {
 void jswrap_display_draw_string(JsVar *args) {
     int argc = jsvGetArrayLength(args);
     if (argc < 6) {
+        printf("Eadk.display_draw_string: Too few arguments (%i). Expected 6.", argc);
         return;
     }
     JsVar *xJsVar = jsvGetArrayItem(args, 1);
     if (!jsvIsInt(xJsVar)) {
-        jsError("Eadk.display_draw_string: Arg[1] (x) must be integer.");
+        printf("Eadk.display_draw_string: Arg[1] (x) must be integer.");
         return;
     }
     uint16_t x = (uint16_t)jsvGetInteger(xJsVar);
     JsVar *yJsVar = jsvGetArrayItem(args, 2);
     if (!jsvIsInt(yJsVar)) {
-        jsError("Eadk.display_draw_string: Arg[2] (y) must be integer.");
+        printf("Eadk.display_draw_string: Arg[2] (y) must be integer.");
         return;
     }
     uint16_t y = (uint16_t)jsvGetInteger(yJsVar);
     JsVar *large_fontJsVar = jsvGetArrayItem(args, 3);
     if (!jsvIsInt(large_fontJsVar)) {
-        jsError("Eadk.display_draw_string: Arg[3] (large_font) must be integer.");
+        printf("Eadk.display_draw_string: Arg[3] (large_font) must be integer.");
         return;
     }
     _Bool large_font = jsvGetBool(large_fontJsVar);
     JsVar *text_colorJsVar = jsvGetArrayItem(args, 4);
     if (!jsvIsInt(text_colorJsVar)) {
-        jsError("Eadk.display_draw_string: Arg[4] (text_color) must be integer.");
+        printf("Eadk.display_draw_string: Arg[4] (text_color) must be integer.");
         return;
     }
     uint16_t text_color = (uint16_t)jsvGetInteger(text_colorJsVar);
     JsVar *background_colorJsVar = jsvGetArrayItem(args, 5);
     if (!jsvIsInt(background_colorJsVar)) {
-        jsError("Eadk.display_draw_string: Arg[5] (background_color) must be integer.");
+        printf("Eadk.display_draw_string: Arg[5] (background_color) must be integer.");
         return;
     }
     uint16_t background_color = (uint16_t)jsvGetInteger(background_colorJsVar);
@@ -12545,17 +12546,17 @@ void jswrap_display_draw_string(JsVar *args) {
     char text[max_len + 1];
     size_t len_of_text = jsvGetStringChars(textJsVar, 0, text, max_len);
     text[len_of_text] = '\0';
-    if (len_of_text >= max_len) {
-        printf("Eadk.display_draw_string: Arg[0] too long, %i >= max %i characters.", len_of_text, max_len);
-        return;
-    }
+    // if (len_of_text >= max_len) {
+    //     printf("Eadk.display_draw_string: Arg[0] too long, %i >= max %i characters.", len_of_text, max_len);
+    //     return;
+    // }
     eadk_display_draw_string(text, (eadk_point_t){x, y}, large_font, (eadk_color_t)text_color, (eadk_color_t)background_color);
     return;
 }
 void jswrap_display_push_rect_uniform(JsVar *args) {
     int argc = jsvGetArrayLength(args);
     if (argc < 5) {
-        jsError("Eadk.display_fill_rect: Too few arguments (%i). Expected 5.", argc);
+        printf("Eadk.display_fill_rect: Too few arguments (%i). Expected 5.", argc);
         return;
     }
     JsVar *xJsVar = jsvGetArrayItem(args, 0);

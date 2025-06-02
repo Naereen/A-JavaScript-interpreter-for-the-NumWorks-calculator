@@ -10,7 +10,7 @@
 #include "storage.h"
 #include "espruino_embedded.h"
 
-const char eadk_app_name[] __attribute__((section(".rodata.eadk_app_name"))) = "JavaScript v0.2";
+const char eadk_app_name[] __attribute__((section(".rodata.eadk_app_name"))) = "JavaScript v0.3";
 const uint32_t eadk_api_level  __attribute__((section(".rodata.eadk_api_level"))) = 0;
 
 // TODO: Check why __exidx_start/__exidx_end is needed
@@ -41,7 +41,7 @@ int main() {
   // Clear the screen, to start with a clean screen
   eadk_display_push_rect_uniform(eadk_screen_rect, eadk_color_white);
 
-  eadk_display_draw_string("NumWorks's JavaScript interpreter v0.2\n", (eadk_point_t){0, 16*0}, false, eadk_color_black, eadk_color_white);
+  eadk_display_draw_string("NumWorks's JavaScript interpreter v0.3\n", (eadk_point_t){0, 16*0}, false, eadk_color_black, eadk_color_white);
   eadk_timing_msleep(1000);
   eadk_display_draw_string("Based on Espruino, by @Naereen\n", (eadk_point_t){0, 16*1}, false, eadk_color_black, eadk_color_white);
   eadk_timing_msleep(1000);

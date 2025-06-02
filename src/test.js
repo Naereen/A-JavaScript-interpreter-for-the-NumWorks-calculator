@@ -18,6 +18,11 @@ msleep(500);
 console.log("Testing all Eadk functions:");
 msleep(500);
 
+console.log("Testing accents in console.log(...):");
+msleep(1000);
+console.log("éèêëàâîïôùûüçÉÈÊËÀÂÎÏÔÙÛÜÇ");
+msleep(1000);
+
 //
 // Display
 //
@@ -32,7 +37,6 @@ msleep(1000);
 Eadk.display_draw_string("Hello in blue on white ?", 0, 16*2, big_text, Eadk.color_blue, Eadk.color_white);
 msleep(1000);
 Eadk.display_draw_string("Hello in black on white ?", 0, 16*3, big_text, Eadk.color_black, Eadk.color_white);
-msleep(1000);
 
 msleep(2000);
 
@@ -45,7 +49,15 @@ msleep(1000);
 Eadk.display_draw_string("Hello in blue on black ?", 0, 16*3+1+14*3, small_text, Eadk.color_blue, Eadk.color_black);
 msleep(1000);
 Eadk.display_draw_string("Hello in white on black ?", 0, 16*3+1+14*4, small_text, Eadk.color_white, Eadk.color_black);
+
+msleep(2000);
+
+// First display on white background, and big text
+Eadk.display_draw_string("Testing accents in Eadk.display_draw_string(...)", 0, 16*3+1+14*5, small_text, Eadk.color_red, Eadk.color_white);
 msleep(1000);
+Eadk.display_draw_string("éèêëàâîïôùûüçÉÈÊËÀÂÎÏÔÙÛÜÇ", 0, 16*3+1+14*6, small_text, Eadk.color_green, Eadk.color_white);
+
+msleep(2000);
 
 //
 // Brightness
@@ -136,8 +148,8 @@ msleep(1000);
 
 console.log("Eadk.display_push_rect_uniform for lines...");
 msleep(1000);
-// Draws a line of single green line of pixels at (1,1) to (151,151)
-for (let line = 1; line <= 151; line++) {
+// Draws a line of single green line of pixels at (1,1) to (252,252)
+for (let line = 1; line <= 252; line++) {
   Eadk.display_push_rect_uniform(line, line, 1, 1, Eadk.color_green);
   msleep(10);
 }
